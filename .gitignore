@@ -1,3 +1,11 @@
+# Taken from last quarter's work
+
+# Files to not update
+data/
+
+# macOS Files
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
