@@ -1,0 +1,5 @@
+{
+  "data_folder": "/data/",
+  "final_output": "/data/out/",
+  "final_name": "combined_data_timestamps.csv"
+}

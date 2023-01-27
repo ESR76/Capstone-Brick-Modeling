@@ -8,6 +8,9 @@ sys.path.insert(0, 'src')
 import datasets.make_dataset
 from datasets.make_dataset import get_data
 
+import features.build_features
+from features.build_features import time_features
+
 
 def clean_prev(cwd):
     files_to_remove = []
@@ -44,7 +47,8 @@ def main(targets):
     '''
 
     cwd = os.getcwd()
-    dataset = None
+    early_dataset = None
+    finished_dataset = None
     out_data_stem = None
     out_file = None
 
@@ -62,11 +66,12 @@ def main(targets):
         if not os.path.isdir(cwd + data_cfg['data_folder']):
             os.mkdir(cwd + data_cfg['data_folder'])
 
-        dataset = get_data(cwd, **data_cfg)
+        early_dataset = get_data(cwd, **data_cfg)
 
         # make the data target
         out_data_stem = "/data/out/"
 
+        # CHECK WHAT THIS DOES???
         if not os.path.isdir(cwd + out_data_stem):
             os.mkdir(cwd + out_data_stem)
 
@@ -80,8 +85,11 @@ def main(targets):
 
     if 'features' in targets:
         print('in run -> features')
-        print("features not finished yet")
-        #print("This model doesn't distinguish separate features from the model because there are no significant transformations.")
+
+        with open('config/features_params.json') as fh:
+            features_cfg = json.load(fh)
+
+        finished_dataset = time_features(cwd, early_dataset, **features_cfg)
 
     # from Quarter 1 - need to adapt
     if 'model' in targets:
@@ -116,7 +124,7 @@ if __name__ == '__main__':
 
     if 'all' in targets:
         targets = ['data', 'features', 'model']
-    print(targets)
+    #print(targets)
 
     if 'test' in targets:
         targets.append('model')
