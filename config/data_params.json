@@ -1,0 +1,7 @@
+{
+  "data_folder": "/data/",
+  "raw_output": "/data/raw/",
+  "temp_output": "/data/temp/",
+  "col_list": ["time", "Common Setpoint", "Actual Sup Flow SP", "Zone Temperature", "Actual Supply Flow", "Outside Air Temp", "Humidity", "energy"],
+  "file_names": ["merged_all_2F.csv", "merged_all_3F.csv", "merged_all_4F.csv"]
+}
