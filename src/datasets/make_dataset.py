@@ -37,6 +37,12 @@ def get_floor_csvs(raw_path, temp_path, check_files, col_list, file_names):
 			file_download(raw_path, url, file_name)
 			print('finished with ' + file_name + ' data')
 		df = pd.read_csv(raw_path + file_name, usecols = col_list)
+		if '2F' in file_name:
+			df['floor'] = 2
+		elif '3F' in file_name:
+			df['floor'] = 3
+		elif '4F' in file_name:
+			df['floor'] = 4
 		dfs.append(df)
 
 	return combine_floor_csvs(dfs, temp_path)
