@@ -2,6 +2,7 @@
 
 # Files to not update
 data/
+test/testdata/test_data_features.csv
 
 # macOS Files
 .DS_Store

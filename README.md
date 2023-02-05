@@ -18,7 +18,7 @@ While we don't use it in the final version of our model, we also have the EBU 3B
 ## Running the Code
 To run the model on the original data and compare to our paper or poster, use "python3 run.py data features model" or "python3 run.py all".
 
-To use a smaller set of test data and test the output, use "python3 run.py test features model".
+To use a smaller set of test data and test the output for the whole pipeline, use "python3 run.py test".
 
 If you'd like to remove the auto-generated files created by running the code, please use "python3 run.py clean".
 
@@ -38,7 +38,7 @@ If you're interested in our work, here's where you can find more about us:
 This project was completed as a capstone project for the Data Science major at UC San Diego.
 For more information on the course, please read about the class [here](https://dsc-capstone.github.io/).
 
-Some of our data comes from the [NOAA (National Oceanic at Atmospheric Administration)](https://www.noaa.gov/) and the [EIA (U.S. Energy Information Administration)](https://www.eia.gov/).
+Some of our supplemental data comes from the [NOAA (National Oceanic at Atmospheric Administration)](https://www.noaa.gov/) and the [EIA (U.S. Energy Information Administration)](https://www.eia.gov/).
 
 We'd also like to thank: 
 - Rajesh Gupta, our mentor and one of the creators of the Brick Schema.
