@@ -1,0 +1,6 @@
+{
+  "test_directory": "/test/testdata/",
+  "orig_name": "test_data.csv",
+  "final_name": "test_data_features.csv",
+  "time_col": "time"
+}

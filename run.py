@@ -15,6 +15,7 @@ from features.build_features import time_features
 def clean_prev(cwd):
     files_to_remove = []
 
+    # removing all directories
     if os.path.isdir(cwd + '/data/'):
         if os.path.isdir(cwd + '/data/' + 'raw/'):
             files = os.listdir(cwd + '/data/' + 'raw/')
@@ -29,9 +30,15 @@ def clean_prev(cwd):
             for file in files:
                 files_to_remove.append(cwd + '/data/' + 'out/' + file)
 
-    # NEED TO CHANGE FOR NEW WORK
-    #if os.path.exists(cwd + "/test/testdata/" + 'test_results_cooling_thermal_power.csv'):
-    #    files_to_remove.append(cwd + "/test/testdata/" + 'test_results_cooling_thermal_power.csv')
+    # Test files
+    test_files = os.listdir(cwd + '/test/' + 'testdata/')
+    test_files.remove('test_data.csv')
+
+    for i, file in enumerate(test_files):
+        new_file = cwd + '/test/' + 'testdata/' + file
+        test_files[i] = new_file
+
+    files_to_remove.extend(test_files)
 
     for file in files_to_remove:
         os.remove(file)
@@ -47,15 +54,27 @@ def main(targets):
     '''
 
     cwd = os.getcwd()
-    early_dataset = None
-    finished_dataset = None
-    out_data_stem = None
-    out_file = None
+    early_dataset = pd.DataFrame()
 
     if 'clean' in targets:
-        print('clean was specified: previous results are being removed')
+        print('clean was specified: previous model and test results are being removed')
         clean_prev(cwd)
         print('finished cleaning')
+
+    if 'test' in targets:
+        print('in run -> test')
+        print('Will run the whole process on a test subset of data, from feature creation to model.')
+
+        with open('config/test_params.json') as fh:
+            test_cfg = json.load(fh)
+
+        # data
+        early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0)
+        # features
+        finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
+        # model
+
+
 
     if 'data' in targets:
         print('in run -> data')
@@ -69,19 +88,15 @@ def main(targets):
         early_dataset = get_data(cwd, **data_cfg)
 
         # make the data target
-        out_data_stem = "/data/out/"
+        out_data_stem = data_cfg['final_output']
 
-        # CHECK WHAT THIS DOES???
+        # Makes out data if needed
         if not os.path.isdir(cwd + out_data_stem):
             os.mkdir(cwd + out_data_stem)
 
         out_file = out_data_stem + 'cooling_thermal_power.csv'
-        
-    # from Quarter 1 - need to adapt
-    #elif 'test' in targets:
-    #    out_data_stem = "/test/testdata/"
-    #    dataset = pd.read_csv(cwd + out_data_stem + 'test_data.csv')
-    #    out_file = out_data_stem + 'test_results_cooling_thermal_power.csv'
+
+    finished_dataset = pd.DataFrame()
 
     if 'features' in targets:
         print('in run -> features')
@@ -89,11 +104,20 @@ def main(targets):
         with open('config/features_params.json') as fh:
             features_cfg = json.load(fh)
 
-        finished_dataset = time_features(cwd, early_dataset, **features_cfg)
+        if early_dataset.empty:
+            print('data was not in targets - will pull data from outfile. Will raise error if data never generated.')
+            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'])
+
+        finished_dataset = time_features(cwd, early_dataset, True, **features_cfg)
 
     # from Quarter 1 - need to adapt
     if 'model' in targets:
         print("model not finished yet")
+
+        if finished_dataset.empty:
+            print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
+            finished_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'])
+
     #    print("in run -> model")
     #    with open('config/model_params.json') as fh:
         #     model_cfg = json.load(fh)
@@ -114,8 +138,10 @@ def main(targets):
 
 if __name__ == '__main__':
     # run via:
-    # python run.py data model
-    # or python run.py test model
+    # python run.py data features model or run.py all
+    
+    # test via:
+    # python run.py test
 
     # clean via:
     # python run.py clean
@@ -123,14 +149,8 @@ if __name__ == '__main__':
     targets = sys.argv[1:]
 
     if 'all' in targets:
-        targets = ['data', 'features', 'model']
-    #print(targets)
-
-    if 'test' in targets:
-        targets.append('model')
-
-    if 'data' not in targets and 'test' not in targets:
-        print('No valid data was specified (with either "data" or "test"), so an error will be raised if you included the model keyword.')
+        targets.extend(['data', 'features', 'model'])
+        targets.remove('all')
 
     main(targets)
     print('finished running')

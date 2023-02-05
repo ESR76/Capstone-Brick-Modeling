@@ -1,5 +1,8 @@
 {
   "data_folder": "/data/",
+  "raw_output": "/data/raw/",
+  "temp_output": "/data/temp/",
   "final_output": "/data/out/",
-  "final_name": "combined_data_timestamps.csv"
+  "final_name": "combined_data_timestamps.csv",
+  "time_col": "time"
 }
