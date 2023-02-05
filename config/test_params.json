@@ -2,5 +2,6 @@
   "test_directory": "/test/testdata/",
   "orig_name": "test_data.csv",
   "final_name": "test_data_features.csv",
-  "time_col": "time"
+  "time_col": "time",
+  "energy_col": "energy"
 }

@@ -13,6 +13,18 @@ def create_time_cols(data, time_col):
 
 	return data
 
+def create_prophet_features(data, time, energy):
+	data_subset = data.loc[:, [time, energy]]
+
+	data_subset[time] = data_subset[time].str[0: -6]
+
+	data_subset = data_subset.rename({time: 'ds', energy: 'y'}, axis = 1)
+
+	data_subset['time_transformed'] = data_subset['ds'].transform(pd.Timestamp)
+
+	return data_subset
+
+
 
 def time_features(cwd, data, is_train, **params):
 	print("in features..")
@@ -28,12 +40,13 @@ def time_features(cwd, data, is_train, **params):
 		else:
 			os.mkdir(cwd + params['final_output'])
 
-	# creating time column
-	data['time_transformed'] = data[params['time_col']].apply(lambda x: pd.Timestamp(x))
+	# creating time column for standard cleaning pipeline
+	#data['time_transformed'] = data[params['time_col']].apply(lambda x: pd.Timestamp(x))
+	#data = create_time_cols(data, 'time_transformed')
+	#data = data.drop(['time_transformed', 'time'], axis = 1)
 
-	# creating other columns
-	data = create_time_cols(data, 'time_transformed')
-	data = data.drop(['time_transformed', 'time'], axis = 1)
+	# alternate prophet pipeline
+	data = create_prophet_features(data, params['time_col'], params['energy_col'])
 
 	if is_train:
 		data.to_csv(cwd + params['final_output'] + final_name)

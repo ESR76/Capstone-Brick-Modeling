@@ -11,6 +11,9 @@ from datasets.make_dataset import get_data
 import features.build_features
 from features.build_features import time_features
 
+import models.prophet_model
+from models.prophet_model import generate_model
+
 
 def clean_prev(cwd):
     files_to_remove = []
@@ -118,6 +121,8 @@ def main(targets):
             print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
             finished_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'])
 
+
+        # CURRENTLY RUNNING PROPHET-MODEL FOR LOGIC
     #    print("in run -> model")
     #    with open('config/model_params.json') as fh:
         #     model_cfg = json.load(fh)
