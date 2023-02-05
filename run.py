@@ -77,8 +77,6 @@ def main(targets):
         finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
         # model
 
-
-
     if 'data' in targets:
         print('in run -> data')
 
@@ -113,14 +111,22 @@ def main(targets):
 
         finished_dataset = time_features(cwd, early_dataset, True, **features_cfg)
 
+    modeled_dataset = pd.DataFrame()
+
     # from Quarter 1 - need to adapt
     if 'model' in targets:
         print("model not finished yet")
 
         if finished_dataset.empty:
             print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
-            finished_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'])
+            finished_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'], index_col = 0)
 
+        with open('config/model_params.json') as fh:
+            model_cfg = json.load(fh)
+
+        modeled_dataset = generate_model(cwd, finished_dataset, True, **model_cfg)
+
+        modeled_dataset.head(10)
 
         # CURRENTLY RUNNING PROPHET-MODEL FOR LOGIC
     #    print("in run -> model")
