@@ -1,5 +1,9 @@
 {
+  "data_folder": "/data/",
+  "raw_output": "/data/raw/",
+  "temp_output": "/data/temp/",
   "final_output": "/data/out/",
+  "final_name": "combined_data_out.csv",
   "modeled_data": "data_output.csv",
   "timestamp_col_prophet": "time_transformed",
   "split_date": "2018-08-01"

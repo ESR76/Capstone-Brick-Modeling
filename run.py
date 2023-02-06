@@ -107,7 +107,7 @@ def main(targets):
 
         if early_dataset.empty:
             print('data was not in targets - will pull data from outfile. Will raise error if data never generated.')
-            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'])
+            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'])
 
         finished_dataset = time_features(cwd, early_dataset, True, **features_cfg)
 
@@ -117,12 +117,14 @@ def main(targets):
     if 'model' in targets:
         print("model not finished yet")
 
-        if finished_dataset.empty:
-            print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
-            finished_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['final_name'], index_col = 0)
-
         with open('config/model_params.json') as fh:
             model_cfg = json.load(fh)
+
+        if finished_dataset.empty:
+            print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
+            finished_dataset = pd.read_csv(cwd + model_cfg['final_output'] + model_cfg['final_name'], index_col = 0)
+
+            finished_dataset[model_cfg['timestamp_col_prophet']] = finished_dataset[model_cfg['timestamp_col_prophet']].transform(pd.Timestamp)
 
         modeled_dataset = generate_model(cwd, finished_dataset, True, **model_cfg)
 

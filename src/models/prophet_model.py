@@ -28,6 +28,9 @@ def generate_model(cwd, data, is_train, **params):
 
 	mse = ((merge_compare['yhat'] - merge_compare['y']) ** 2).sum() / merge_compare.shape[0]
 
-	print("Mean squared error for %{0.2f} training data and %{0.2f} test data is {0.4f}.".format(training_percentage, testing_percentage, mse))
+	print('Training percentage: ' + str(training_percentage) + ', testing percentage: ' + str(testing_percentage) + ', prediction mean squared error: ' + str(mse))
+	
+	# not sure what I'm doing wrong with this line right now but leaving it alone
+	#print("Mean squared error for {%.2f} training data and {%.2f} test data is {%.4f}.".format(training_percentage, testing_percentage, mse))
 
 	return merge_compare
