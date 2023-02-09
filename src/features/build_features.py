@@ -41,12 +41,12 @@ def time_features(cwd, data, is_train, **params):
 			os.mkdir(cwd + params['final_output'])
 
 	# creating time column for standard cleaning pipeline
-	#data['time_transformed'] = data[params['time_col']].apply(lambda x: pd.Timestamp(x))
-	#data = create_time_cols(data, 'time_transformed')
-	#data = data.drop(['time_transformed', 'time'], axis = 1)
+	data['time_transformed'] = data[params['time_col']].apply(lambda x: pd.Timestamp(x))
+	data = create_time_cols(data, 'time_transformed')
+	data = data.drop(['time_transformed', 'time'], axis = 1)
 
 	# alternate prophet pipeline
-	data = create_prophet_features(data, params['time_col'], params['energy_col'])
+	#data = create_prophet_features(data, params['time_col'], params['energy_col'])
 
 	if is_train:
 		data.to_csv(cwd + params['final_output'] + final_name)
