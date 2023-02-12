@@ -11,8 +11,8 @@ from datasets.make_dataset import get_data
 import features.build_features
 from features.build_features import time_features
 
-import models.prophet_model
-from models.prophet_model import generate_model
+import models.tree_model
+from models.tree_model import generate_model
 
 
 def clean_prev(cwd):
@@ -76,6 +76,7 @@ def main(targets):
         # features
         finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
         # model
+        modeled_predictions = generate_model(cwd, finished_dataset, False, **test_cfg)
 
     if 'data' in targets:
         print('in run -> data')
@@ -89,13 +90,12 @@ def main(targets):
         early_dataset = get_data(cwd, **data_cfg)
 
         # make the data target
-        out_data_stem = data_cfg['final_output']
+        #out_data_stem = data_cfg['final_output']
 
         # Makes out data if needed
-        if not os.path.isdir(cwd + out_data_stem):
-            os.mkdir(cwd + out_data_stem)
-
-        out_file = out_data_stem + 'cooling_thermal_power.csv'
+        
+        #if not os.path.isdir(cwd + out_data_stem):
+        #    os.mkdir(cwd + out_data_stem)
 
     finished_dataset = pd.DataFrame()
 
@@ -106,46 +106,27 @@ def main(targets):
             features_cfg = json.load(fh)
 
         if early_dataset.empty:
-            print('data was not in targets - will pull data from outfile. Will raise error if data never generated.')
-            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'])
+            print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
+            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'], index_col = 0)
 
         finished_dataset = time_features(cwd, early_dataset, True, **features_cfg)
 
     modeled_dataset = pd.DataFrame()
 
-    # from Quarter 1 - need to adapt
     if 'model' in targets:
-        print("model not finished yet")
+        print("in run -> model")
 
         with open('config/model_params.json') as fh:
             model_cfg = json.load(fh)
 
         if finished_dataset.empty:
-            print('features was not in targets - will pull data from outfile assuming features run before. Will raise error if data never generated.')
-            finished_dataset = pd.read_csv(cwd + model_cfg['final_output'] + model_cfg['final_name'], index_col = 0)
+            print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
+            finished_dataset = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'], index_col = 0)
 
             finished_dataset[model_cfg['timestamp_col_prophet']] = finished_dataset[model_cfg['timestamp_col_prophet']].transform(pd.Timestamp)
 
-        modeled_dataset = generate_model(cwd, finished_dataset, True, **model_cfg)
 
-        modeled_dataset.head(10)
-
-        # CURRENTLY RUNNING PROPHET-MODEL FOR LOGIC
-    #    print("in run -> model")
-    #    with open('config/model_params.json') as fh:
-        #     model_cfg = json.load(fh)
-
-        # final_data = train_model(dataset, model_cfg)
-        # final_data.to_csv(cwd + out_file)
-        # print('Values saved to: ' + cwd + out_file)
-
-        # # Compares by rerunning - rounds to prevent roundoff error
-        # check_data = pd.read_csv(cwd + out_file, index_col = 0)['cooling_thermal_power'].round(2)
-
-        # if final_data.round(2).equals(check_data):
-        #     print('Data reread from file to confirm equality: data has been generated and saved correctly.')
-        # else:
-        #     print('Data reread from file to confirm equality: was not equal - please check to see if an error was raised.')
+        modeled_predictions = generate_model(cwd, finished_dataset, True, **model_cfg)
 
 
 

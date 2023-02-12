@@ -1,7 +1,11 @@
 {
   "test_directory": "/test/testdata/",
   "orig_name": "test_data.csv",
-  "final_name": "test_data_features.csv",
+  "pre_model_name": "test_data_features.csv",
   "time_col": "time",
-  "energy_col": "energy"
+  "timestamp_col_tree": "time_transformed",
+  "energy_col": "energy",
+  "split_date": "2018-08-01",
+  "train_data": "training.csv",
+  "test_data": "testing.csv"
 }

@@ -4,11 +4,27 @@ from sklearn import utils
 from sklearn.metrics import mean_squared_error
 import pandas as pd
 import numpy as np
+import os
 
 
 def generate_model(cwd, data, is_train, **params):
 	print("in model..")
-	timestamp_col = params["timestamp_col_prophet"]
+
+	train_name = params['train_data']
+	test_name = params['test_data']
+	final_name = params['modeled_preds']
+	energy_col = params['energy_col']
+
+	if is_train:
+		if os.path.isdir(cwd + params['final_output']):
+			files = os.listdir(cwd + params['final_output'])
+
+			if final_name in files:
+				print('Modeled data already found - regenerating because of model call.')
+		else:
+			os.mkdir(cwd + params['final_output'])
+
+	timestamp_col = params["timestamp_col_tree"]
 
 	dates = data[timestamp_col]
 
@@ -16,22 +32,28 @@ def generate_model(cwd, data, is_train, **params):
 
 	training_data = data.loc[dates_train, :].reset_index(drop = True).drop([timestamp_col], axis = 1)
 	training_percentage = training_data.shape[0] / data.shape[0] * 100
-	testing_data = data.loc[~dates_train, :].reset_index(drop = True)
+	testing_data = data.loc[~dates_train, :].reset_index(drop = True).drop([timestamp_col], axis = 1)
 	testing_percentage = testing_data.shape[0] / data.shape[0] * 100
 
 	clf = tree.DecisionTreeRegressor(max_depth = 7, min_samples_split = 5)
 	
-	Ytrain = dates.loc[dates_train, :].reset_index(drop = True)
+	Xtrain = training_data.drop([energy_col], axis = 1)
+	Ytrain = training_data[energy_col]
 	
-	Ytest = dates.loc[~dates_train, :].reset_index(drop = True)
+	Xtest = testing_data.drop([energy_col], axis = 1)
+	Ytest = testing_data[energy_col]
 
-	clf = clf.fit(training_data, Ytrain)
-	y_pred = clf.predict(testing_data)
-	mse = mean_squared_error(Ytrain,y_pred)
-
-	print('Training percentage: ' + str(training_percentage) + ', testing percentage: ' + str(testing_percentage) + ', prediction mean squared error: ' + str(mse))
+	clf = clf.fit(Xtrain, Ytrain)
+	y_pred = clf.predict(Xtest)
+	pred_series = pd.Series(y_pred).rename("preds")
+	mse = mean_squared_error(Ytest,pred_series)
 	
-	# not sure what I'm doing wrong with this line right now but leaving it alone
-	#print("Mean squared error for {%.2f} training data and {%.2f} test data is {%.4f}.".format(training_percentage, testing_percentage, mse))
+	print('Training percentage of data: {0:.2f}%, testing percentage of data: {1:.2f}%, prediction mean squared error: {2:.2f}.'.format(training_percentage, testing_percentage, mse))
 
-	return y_pred
+	if is_train:
+		training_data.to_csv(cwd + params['final_output'] + train_name)
+		testing_data.to_csv(cwd + params['final_output'] + test_name)
+
+		pred_series.to_csv(cwd + params['final_output'] + final_name)
+
+	return pred_series

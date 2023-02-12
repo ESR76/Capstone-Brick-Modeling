@@ -32,7 +32,7 @@ def get_floor_csvs(raw_path, temp_path, check_files, col_list, file_names):
 
 	for file_name in file_names:
 		if file_name not in check_files:
-			print(file_name + ' not present in raw data files: starting data download')
+			print(file_name + ' not present in raw data files: starting data download.')
 			url = 'https://raw.githubusercontent.com/HYDesmondLiu/B2RL/master/real_building_buffers/{}'.format(file_name)
 			file_download(raw_path, url, file_name)
 			print('finished with ' + file_name + ' data')
