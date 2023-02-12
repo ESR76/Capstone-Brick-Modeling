@@ -10,5 +10,7 @@
   "energy_col": "energy",
   "timestamp_col_tree": "time_transformed",
   "timestamp_col_prophet": "time_transformed",
-  "split_date": "2018-08-01"
+  "split_date": "2018-08-01",
+  "max_depth": 7,
+  "min_samples_split": 5
 }

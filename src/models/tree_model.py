@@ -1,10 +1,13 @@
 from sklearn import tree
-from sklearn import preprocessing
-from sklearn import utils
 from sklearn.metrics import mean_squared_error
 import pandas as pd
 import numpy as np
 import os
+
+# legacy imports from notebooks
+#from sklearn import preprocessing
+#from sklearn import utils
+
 
 
 def generate_model(cwd, data, is_train, **params):
@@ -35,7 +38,7 @@ def generate_model(cwd, data, is_train, **params):
 	testing_data = data.loc[~dates_train, :].reset_index(drop = True).drop([timestamp_col], axis = 1)
 	testing_percentage = testing_data.shape[0] / data.shape[0] * 100
 
-	clf = tree.DecisionTreeRegressor(max_depth = 7, min_samples_split = 5)
+	clf = tree.DecisionTreeRegressor(max_depth = params['max_depth'], min_samples_split = params['min_samples_split'])
 	
 	Xtrain = training_data.drop([energy_col], axis = 1)
 	Ytrain = training_data[energy_col]
