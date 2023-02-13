@@ -13,6 +13,7 @@ def create_time_cols(data, time_col):
 
 	return data
 
+# unused for checkpoint
 def create_prophet_features(data, time, energy):
 	data_subset = data.loc[:, [time, energy]]
 
@@ -25,10 +26,7 @@ def create_prophet_features(data, time, energy):
 	return data_subset
 
 
-
 def time_features(cwd, data, is_train, **params):
-	print("in features..")
-
 	final_name = params['pre_model_name']
 
 	if is_train:
@@ -39,14 +37,19 @@ def time_features(cwd, data, is_train, **params):
 				print('Timestamped data already found - regenerating because of features call.')
 		else:
 			os.mkdir(cwd + params['temp_output'])
+	else:
+		print("no run -> data call because test data is already present")
+		print("in run -> features")
+
 
 	# creating time column for standard cleaning pipeline
 	data['time_transformed'] = data[params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
-	data = data.drop([params['time_col']], axis = 1)
 	data = create_time_cols(data, 'time_transformed')
 
 	# alternate prophet pipeline
 	#data = create_prophet_features(data, params['time_col'], params['energy_col'])
+
+	data = data.drop([params['time_col']], axis = 1)
 
 	if is_train:
 		data.to_csv(cwd + params['temp_output'] + final_name)

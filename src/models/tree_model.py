@@ -8,8 +8,6 @@ import os
 #from sklearn import preprocessing
 #from sklearn import utils
 
-
-
 def generate_model(cwd, data, is_train, **params):
 	print("in model..")
 
@@ -26,6 +24,8 @@ def generate_model(cwd, data, is_train, **params):
 				print('Modeled data already found - regenerating because of model call.')
 		else:
 			os.mkdir(cwd + params['final_output'])
+	else:
+		print("in run -> model")
 
 	timestamp_col = params["timestamp_col_tree"]
 
@@ -58,5 +58,10 @@ def generate_model(cwd, data, is_train, **params):
 		testing_data.to_csv(cwd + params['final_output'] + test_name)
 
 		pred_series.to_csv(cwd + params['final_output'] + final_name)
+	else:
+		training_data.to_csv(cwd + params['test_directory'] + train_name)
+		testing_data.to_csv(cwd + params['test_directory'] + test_name)
+
+		pred_series.to_csv(cwd + params['test_directory'] + final_name)
 
 	return pred_series

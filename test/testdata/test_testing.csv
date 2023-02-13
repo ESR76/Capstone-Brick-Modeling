@@ -1,0 +1,4 @@
+,Common Setpoint,Actual Sup Flow SP,Zone Temperature,Actual Supply Flow,energy,Outside Air Temp,Humidity,floor,month,year,day,weekday,hour,minute,second
+0,72.5,330.0,75.74,317.06,9.828985785968763,61.72,57.0,1,8,2018,2,3,3,5,15
+1,72.5,330.0,75.74,312.86,12.121766527067022,61.78,57.0,1,8,2018,10,4,3,11,44
+2,72.5,355.64,75.74,385.84,10.60937320182079,61.72,57.0,1,8,2018,15,2,3,18,14

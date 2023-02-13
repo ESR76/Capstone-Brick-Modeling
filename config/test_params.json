@@ -6,8 +6,9 @@
   "timestamp_col_tree": "time_transformed",
   "energy_col": "energy",
   "split_date": "2018-08-01",
-  "train_data": "training.csv",
-  "test_data": "testing.csv",
+  "train_data": "test_training.csv",
+  "test_data": "test_testing.csv",
   "max_depth": 7,
-  "min_samples_split": 5
+  "min_samples_split": 5,
+  "modeled_preds": "test_data_preds.csv"
 }

@@ -14,24 +14,20 @@ from features.build_features import time_features
 import models.tree_model
 from models.tree_model import generate_model
 
-
+# function called for cleaning data
 def clean_prev(cwd):
+    print('in run -> clean')
+    print('clean was specified: previous model and test results are being removed')
     files_to_remove = []
+    pathways = ['/data/raw/', '/data/temp/', '/data/out/']
 
-    # removing all directories
+    # removing all data autodownloaded/generated
     if os.path.isdir(cwd + '/data/'):
-        if os.path.isdir(cwd + '/data/' + 'raw/'):
-            files = os.listdir(cwd + '/data/' + 'raw/')
-            for file in files:
-                files_to_remove.append(cwd + '/data/' + 'raw/' + file)
-        if os.path.isdir(cwd + '/data/' + 'temp/'):
-            files = os.listdir(cwd + '/data/' + 'temp/')
-            for file in files:
-                files_to_remove.append(cwd + '/data/' + 'temp/' + file)
-        if os.path.isdir(cwd + '/data/' + 'out/'):
-            files = os.listdir(cwd + '/data/' + 'out/')
-            for file in files:
-                files_to_remove.append(cwd + '/data/' + 'out/' + file)
+        for pathway in pathways:
+            if os.path.isdir(cwd + pathway):
+                files = os.listdir(cwd + pathway)
+                for file in files:
+                    files_to_remove.append(cwd + pathway + file)
 
     # Test files
     test_files = os.listdir(cwd + '/test/' + 'testdata/')
@@ -46,8 +42,68 @@ def clean_prev(cwd):
     for file in files_to_remove:
         os.remove(file)
 
+    print('finished cleaning')
     return
 
+# function for running test case
+def test(cwd):
+    print('in run -> test')
+    print('Will run the current process on a test subset of data: features -> model.')
+
+    with open('config/test_params.json') as fh:
+        test_cfg = json.load(fh)
+
+    # data
+    early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0)
+    # features
+    finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
+    # model
+    modeled_predictions = generate_model(cwd, finished_dataset, False, **test_cfg)
+
+    print('finished with test')
+    return
+
+# function for running current modeling steps
+def data(cwd):
+    print('in run -> data')
+    with open('config/data_params.json') as fh:
+        data_cfg = json.load(fh)
+
+    if not os.path.isdir(cwd + data_cfg['data_folder']):
+        os.mkdir(cwd + data_cfg['data_folder'])
+
+    return get_data(cwd, **data_cfg)
+
+def features(cwd, ds):
+    print('in run -> features')
+
+    with open('config/features_params.json') as fh:
+        features_cfg = json.load(fh)
+
+    if ds.empty:
+        print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
+        ds = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'], index_col = 0)
+
+    return time_features(cwd, ds, True, **features_cfg)
+
+def model(cwd, ds):
+    print("in run -> model")
+
+    with open('config/model_params.json') as fh:
+        model_cfg = json.load(fh)
+
+    if ds.empty:
+        print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
+        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'], index_col = 0)
+
+        ds[model_cfg['timestamp_col_tree']] = ds[model_cfg['timestamp_col_tree']].transform(pd.Timestamp)
+
+    return generate_model(cwd, ds, True, **model_cfg)
+
+def visualize(cwd, ds):
+    print('in run -> visualize')
+    print('visualize has not been defined yet.')
+    return
 
 def main(targets):
     '''
@@ -55,79 +111,41 @@ def main(targets):
         targets must contain: 'data', 'model'.
         `main` runs the targets in order of data=>model.
     '''
+    order = []
 
     cwd = os.getcwd()
-    early_dataset = pd.DataFrame()
 
+    # runs clean before running anything else
     if 'clean' in targets:
-        print('clean was specified: previous model and test results are being removed')
         clean_prev(cwd)
-        print('finished cleaning')
+        order.append('clean')
 
+    # runs test before running any pipeline state
     if 'test' in targets:
-        print('in run -> test')
-        print('Will run the whole process on a test subset of data, from feature creation to model.')
+        test(cwd)
+        order.append('test')
 
-        with open('config/test_params.json') as fh:
-            test_cfg = json.load(fh)
-
-        # data
-        early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0)
-        # features
-        finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
-        # model
-        modeled_predictions = generate_model(cwd, finished_dataset, False, **test_cfg)
-
+    # runs data, features, and model in order - if trying to run without the other, it will print a statement and assume others have been run before
+    early_dataset = pd.DataFrame()
     if 'data' in targets:
-        print('in run -> data')
-
-        with open('config/data_params.json') as fh:
-            data_cfg = json.load(fh)
-
-        if not os.path.isdir(cwd + data_cfg['data_folder']):
-            os.mkdir(cwd + data_cfg['data_folder'])
-
-        early_dataset = get_data(cwd, **data_cfg)
-
-        # make the data target
-        #out_data_stem = data_cfg['final_output']
-
-        # Makes out data if needed
+        early_dataset = data(cwd)
+        order.append('data')
         
-        #if not os.path.isdir(cwd + out_data_stem):
-        #    os.mkdir(cwd + out_data_stem)
-
     finished_dataset = pd.DataFrame()
-
     if 'features' in targets:
-        print('in run -> features')
-
-        with open('config/features_params.json') as fh:
-            features_cfg = json.load(fh)
-
-        if early_dataset.empty:
-            print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
-            early_dataset = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'], index_col = 0)
-
-        finished_dataset = time_features(cwd, early_dataset, True, **features_cfg)
-
+        finished_dataset = features(cwd, early_dataset)
+        order.append('features')
+        
     modeled_dataset = pd.DataFrame()
-
     if 'model' in targets:
-        print("in run -> model")
+        modeled_dataset = model(cwd, finished_dataset)
+        order.append('model')
 
-        with open('config/model_params.json') as fh:
-            model_cfg = json.load(fh)
-
-        if finished_dataset.empty:
-            print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
-            finished_dataset = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'], index_col = 0)
-
-            finished_dataset[model_cfg['timestamp_col_prophet']] = finished_dataset[model_cfg['timestamp_col_prophet']].transform(pd.Timestamp)
-
-
-        modeled_predictions = generate_model(cwd, finished_dataset, True, **model_cfg)
-
+    if 'visualize' in targets:
+        visualize(cwd, modeled_dataset)
+        order.append('visualize')
+    
+    return order
 
 
 if __name__ == '__main__':
@@ -146,5 +164,7 @@ if __name__ == '__main__':
         targets.extend(['data', 'features', 'model'])
         targets.remove('all')
 
-    main(targets)
-    print('finished running')
+    run_order = main(targets)
+    print('Function call finished running. Order of calls performed was: ' + ", ".join(run_order) + ".")
+
+
