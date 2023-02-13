@@ -1,18 +1,21 @@
 # Capstone-Brick-Modeling
 
-**Project description incoming.**
+In this project, we attempt to make predictions about future energy usage and cost in a building using energy data collected from the building's HVAC system.
 
 We also have a [poster](https://www.canva.com/design/DAFZKQlLOLo/2ALw0oHRO8qrPj--Q-8huw/view?utm_content=DAFZKQlLOLo&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink) and website associated with this project (**links to be added soon - if they are visible, the work may not be complete yet.**).
 
-
-## Getting the Data
+### Getting the Data
 Ideally in our pipeline, data would be obtained by pairing sensor data with mappings from our [Brick Schema](https://brickschema.org/) in order to query our desired building and floor in a building for relevant sensors to perform our calculation, then using UCSD's Brick server.
 
-However, we were not able to obtain access to the Brick server in the time we had for the project, so we used data from [a data pull from a previous project](https://github.com/HYDesmondLiu/B2RL/tree/master/real_building_buffers). This represents data on floors 2, 3, and 4 of UC San Diego's EBU-3B (Computer Science) building with data from July 2017 to early January 2019. This data should download automatically when the data part of the pipeline runs - the code should also generate the data, data/raw, data/temp, and data/out directories for you.
+However, we were not able to obtain access to the Brick server in the time we had for the project, so we used data from [a data pull from a previous project](https://github.com/HYDesmondLiu/B2RL/tree/master/real_building_buffers). This represents 15 rooms worth of data on floors 2, 3, and 4 of UC San Diego's EBU-3B (Computer Science) building with data from July 2017 to early January 2019. This data should download automatically when the data part of the pipeline runs - the code should also generate the data, data/raw, data/temp, and data/out directories for you.
 
-We also may use data from the NOAA and the EIA as a part of the model - this data is not autodownloadable without an API key or a specific form to make a request. As such, we've made [this folder on Google Drive](https://drive.google.com/drive/folders/14_XtcM5IIhKrNBvBZEmIwExcd8EffnoE) available which contains the versions of the data we used.
 
-While we don't use it in the final version of our model, we also have the EBU 3B Turtle file (ie. the building's representation in Brick) in our raw data. If you'd like to take a look at this, here's the [link](https://brickschema.org/ttl/ebu3b_brick.ttl). This will not auto-download for you.
+### Other Data and Goals
+Along with predicting future energy usage using the energy values from the data pull above, our goal is also to predict cost information along with future energy usage. To do this, we will be using UCSD's pricing plan for the energy it provides. This has not been implemented yet, but will be soon.
+
+We also may use data from the NOAA and the EIA as a part of the model - this data is not autodownloadable without an API key or a specific form to make a request. We have a Google Drive folder with the UCSD pricing plan data and this extra environmental data. This may be made available upon request, but as of now, we do not have it public because it is not currently implemented in our model.
+
+While we don't use it in the final version of our model, we also have the EBU 3B Turtle file (ie. the building's representation in Brick) in our raw data to understand relationships between components of the HVAC system in the building. If you'd like to take a look at this, here's the [link](https://brickschema.org/ttl/ebu3b_brick.ttl). This will not auto-download for you.
 
 
 ## Running the Code
