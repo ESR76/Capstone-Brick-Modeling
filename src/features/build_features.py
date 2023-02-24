@@ -29,17 +29,18 @@ def create_prophet_features(data, time, energy):
 def time_features(cwd, data, is_train, **params):
 	final_name = params['pre_model_name']
 
-	if is_train:
-		if os.path.isdir(cwd + params['temp_output']):
-			files = os.listdir(cwd + params['temp_output'])
+	# no longer need this secion in time_features because it's in clean
+	#if is_train:
+	#	if os.path.isdir(cwd + params['temp_output']):
+	#		files = os.listdir(cwd + params['temp_output'])
 
-			if final_name in files:
-				print('Timestamped data already found - regenerating because of features call.')
-		else:
-			os.mkdir(cwd + params['temp_output'])
-	else:
-		print("no run -> data call because test data is already present")
-		print("in run -> features")
+	#		if final_name in files:
+	#			print('Timestamped data already found - regenerating because of features call.')
+	#	else:
+	#		os.mkdir(cwd + params['temp_output'])
+	#else:
+	#	print("no run -> data call because test data is already present")
+	#	print("in run -> features")
 
 
 	# creating time column for standard cleaning pipeline

@@ -36,10 +36,10 @@ We are four undergraduate Data Science students in our final year at UC San Dieg
 If you're interested in our work, here's where you can find more about us:
 | Name | GitHub | LinkedIn |
 | ---- | ---- | ---- |
-| **Jonah Bomwell** | [Click Here](https://github.com/Jbomwell) | | 
-| **Alise Bruevich** | [Click Here](https://github.com/alisebruevich) | |
-| **William Nathan** | [Click Here](https://github.com/Xenonition) | |
-| **Esperanza Rozas** | [Click Here](https://github.com/ESR76) | [Click Here](https://www.linkedin.com/in/esperanza-r/) |
+| **Jonah Bomwell** | [Link](https://github.com/Jbomwell) | [Link](https://www.linkedin.com/in/jonah-bomwell-0756191b7/) | 
+| **Alise Bruevich** | [Link](https://github.com/alisebruevich) | [Link](https://www.linkedin.com/in/alisebruevich/) |
+| **William Nathan** | [Link](https://github.com/Xenonition) | [Link](https://www.linkedin.com/in/william-nathan-5019661b2/) |
+| **Esperanza Rozas** | [Link](https://github.com/ESR76) | [Link](https://www.linkedin.com/in/esperanza-r/) |
 
 
 ## Acknowledgments
