@@ -36,14 +36,16 @@ def get_floor_csvs(in_path, out_path, check_files, col_list, file_names, out_nam
 			url = 'https://raw.githubusercontent.com/HYDesmondLiu/B2RL/master/real_building_buffers/{}'.format(file_name)
 			file_download(in_path, url, file_name)
 			print('finished with ' + file_name + ' data')
-		# not limiting columns for now
+		else:
+			print(file_name + ' present in raw data files: skipping download.')
+		# limiting columns for consistency
 		df = pd.read_csv(in_path + file_name, usecols = col_list)
 		if '2F' in file_name and add_floor_names:
-			df['floor'] = 2
+			df.loc[:, 'floor'] = 2
 		elif '3F' in file_name and add_floor_names:
-			df['floor'] = 3
+			df.loc[:, 'floor'] = 3
 		elif '4F' in file_name and add_floor_names:
-			df['floor'] = 4
+			df.loc[:, 'floor'] = 4
 		dfs.append(df)
 
 	return combine_floor_csvs(dfs, out_path, out_name)
@@ -55,6 +57,6 @@ def get_data(cwd, **params):
 		files = os.listdir(cwd + params['raw_output'])
 	else:
 		os.mkdir(cwd + params['raw_output'])
-	# False for add_floor_names because version we're using does not use it
+	# False for add_floor_names because cleaning version we're using does not use it or gain information from it
 	dataset = get_floor_csvs(cwd + params['raw_output'], cwd + params['temp_output'], files, params['col_list'], params['file_names'], params['out_name'], False)
 	return dataset

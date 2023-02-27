@@ -1,8 +1,5 @@
 {
-  "data_folder": "/data/",
-  "raw_output": "/data/raw/",
   "temp_output": "/data/temp/",
-  "final_output": "/data/out/",
   "in_name": "combined_floors.csv", 
   "out_name": "combined_floors_cleaned.csv",
   "time_col": "time",

@@ -96,10 +96,7 @@ def features_2(cwd, ds):
     with open('config/features_params.json') as fh:
         features_cfg = json.load(fh)
 
-    # WITH CLEAN ADDED TO PIPELINE, THIS CANNOT BE EMPTY - will cause issues in clean
-    #if ds.empty:
-    #    print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
-    #    ds = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'], index_col = 0)
+    # no warning because features_2 runs after features_1
 
     return time_features(cwd, ds, True, **features_cfg)
 
@@ -113,8 +110,6 @@ def model(cwd, ds):
         print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
         ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
 
-        # nulling for now since I think we're not using it right now
-        #ds[model_cfg['timestamp_col_tree']] = ds[model_cfg['timestamp_col_tree']].transform(pd.Timestamp)
 
     return generate_model(cwd, ds, True, **model_cfg)
 

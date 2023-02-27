@@ -16,6 +16,7 @@ def clean_raw(cwd, data, is_train, **params):
 		print("no run -> data call because test data is already present")
 		print("in run -> features")
 
+	# temp time strips UTC addition and then converts to timestamp
 	data.loc[:, 'temp_time'] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
 
 	# floor data timestamps to the nearest hour here and get hours
@@ -25,6 +26,7 @@ def clean_raw(cwd, data, is_train, **params):
 	split_date = params['split_date']
 
 	# split into train and test for impute purposes - train set getting hour column to be used properly
+	# based on a date for approximately 70/30% split where 30% is most recent
 	train_set = data.loc[data.loc[:, params['time_changed']] < split_date, :]
 	train_set.loc[:, 'hour'] = train_set.loc[:, params['time_changed']].transform(lambda x: x.hour)
 
@@ -44,6 +46,7 @@ def clean_raw(cwd, data, is_train, **params):
 	min_ts = medians.index[0]
 	max_ts = medians.index[len(medians) - 1]
 
+	# FIX - should this be the split date?
 	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, max_ts, freq=params['time_floor_val']))
 
 	complete_times_train = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
@@ -55,7 +58,7 @@ def clean_raw(cwd, data, is_train, **params):
 	keep_cols = list(complete_times_train.columns)[0: len(complete_times_train.columns) - 1]
 	keep_cols_y = [x + "_y" for x in keep_cols]
 
-	# merge then keep the relevant values?
+	# merge then keep the relevant columns based on merge logic (no the most efficient but didn't have time to clean)
 	imputed_meds = complete_times_train.loc[complete_times_train[params['energy_col']].isna(), :].merge(hour_medians, left_on = 'hour', right_index = True)
 	imputed_meds = imputed_meds.loc[:, keep_cols_y].rename(dict(zip(keep_cols_y, keep_cols)), axis = 1)
 

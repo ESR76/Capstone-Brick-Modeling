@@ -10,7 +10,7 @@ def generate_model(cwd, data, is_train, **params):
 	train_name = params['train_data']
 	test_name = params['test_data']
 	final_name = params['modeled_preds']
-	energy_col = params['energy_col']
+	output_col = params['output_col']
 
 	if is_train:
 		if os.path.isdir(cwd + params['final_output']):
@@ -28,11 +28,11 @@ def generate_model(cwd, data, is_train, **params):
 
 	clf = tree.DecisionTreeRegressor(max_depth = params['max_depth'], min_samples_split = params['min_samples_split'])
 	
-	Xtrain = training_data.drop([energy_col], axis = 1)
-	Ytrain = training_data[energy_col]
+	Xtrain = training_data.drop([output_col], axis = 1)
+	Ytrain = training_data[output_col]
 
-	Xtest = testing_data.drop([energy_col], axis = 1)
-	Ytest = testing_data[energy_col]
+	Xtest = testing_data.drop([output_col], axis = 1)
+	Ytest = testing_data[output_col]
 
 	clf = clf.fit(Xtrain, Ytrain)
 	y_pred = clf.predict(Xtest)
