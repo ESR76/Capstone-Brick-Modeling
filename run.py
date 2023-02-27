@@ -85,7 +85,7 @@ def features_1(cwd, ds):
 
     if ds.empty:
         print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
-        ds = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'])
+        ds = pd.read_csv(cwd + clean_cfg['temp_output'] + clean_cfg['in_name'])
 
     return clean_raw(cwd, ds, True, **clean_cfg)
 
@@ -111,9 +111,10 @@ def model(cwd, ds):
 
     if ds.empty:
         print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
-        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'], index_col = 0)
+        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
 
-        ds[model_cfg['timestamp_col_tree']] = ds[model_cfg['timestamp_col_tree']].transform(pd.Timestamp)
+        # nulling for now since I think we're not using it right now
+        #ds[model_cfg['timestamp_col_tree']] = ds[model_cfg['timestamp_col_tree']].transform(pd.Timestamp)
 
     return generate_model(cwd, ds, True, **model_cfg)
 

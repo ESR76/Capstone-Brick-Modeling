@@ -6,11 +6,12 @@
   "pre_model_name": "combined_data_input.csv",
   "train_data": "model_training.csv",
   "test_data": "model_testing.csv",
+  "col_list": ["time", "Common Setpoint", "Actual Sup Flow SP", "Zone Temperature", "Actual Supply Flow", "Outside Air Temp", "Humidity", "energy"],
   "modeled_preds": "test_predictions.csv",
   "energy_col": "energy",
+  "cost_col": "cost",
   "timestamp_col_tree": "time_transformed",
   "timestamp_col_prophet": "time_transformed",
-  "split_date": "2018-08-01",
   "max_depth": 7,
   "min_samples_split": 5
 }

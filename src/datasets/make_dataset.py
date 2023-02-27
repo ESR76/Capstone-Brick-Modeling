@@ -37,8 +37,7 @@ def get_floor_csvs(in_path, out_path, check_files, col_list, file_names, out_nam
 			file_download(in_path, url, file_name)
 			print('finished with ' + file_name + ' data')
 		# not limiting columns for now
-		df = pd.read_csv(in_path + file_name)
-		# df = pd.read_csv(in_path + file_name, usecols = col_list)
+		df = pd.read_csv(in_path + file_name, usecols = col_list)
 		if '2F' in file_name and add_floor_names:
 			df['floor'] = 2
 		elif '3F' in file_name and add_floor_names:

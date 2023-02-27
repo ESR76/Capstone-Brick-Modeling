@@ -44,8 +44,12 @@ def time_features(cwd, data, is_train, **params):
 
 
 	# creating time column for standard cleaning pipeline
-	data['time_transformed'] = data[params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
-	data = create_time_cols(data, 'time_transformed')
+	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: pd.Timestamp(x))
+	data = create_time_cols(data, params['time_col'])
+
+	# CREATE COST COLUMN INSTEAD OF ENERGY COLUMN HERE
+	# ADD MODIFICATIONS FOR SLIDING SCALE OF COST
+	# AND DROP ENERGY WHEN DONE WITH TIME
 
 	# alternate prophet pipeline
 	#data = create_prophet_features(data, params['time_col'], params['energy_col'])
@@ -53,7 +57,7 @@ def time_features(cwd, data, is_train, **params):
 	data = data.drop([params['time_col']], axis = 1)
 
 	if is_train:
-		data.to_csv(cwd + params['temp_output'] + final_name)
+		data.to_csv(cwd + params['temp_output'] + final_name, index = False)
 	else:
 		data.to_csv(cwd + params['test_directory'] + final_name)
 
