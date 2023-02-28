@@ -1,10 +1,10 @@
 {
-  "data_folder": "/data/",
-  "raw_output": "/data/raw/",
   "temp_output": "/data/temp/",
-  "final_output": "/data/out/",
-  "inter_name": "combined_floors.csv", 
+  "inter_name": "combined_floors_cleaned.csv", 
   "pre_model_name": "combined_data_input.csv",
   "time_col": "time",
-  "energy_col": "energy"
+  "time_changed": "time_transformed",
+  "energy_col": "energy",
+  "cost_col": "cost",
+  "fiscal_values": {"06/30/2018": 0.07, "06/30/2019": 0.08}
 }

@@ -8,15 +8,16 @@ sys.path.insert(0, 'src')
 import datasets.make_dataset
 from datasets.make_dataset import get_data
 
-import features.build_features
+import features.build_features, features.clean_for_features
 from features.build_features import time_features
+from features.clean_for_features import clean_raw
 
 import models.tree_model
 from models.tree_model import generate_model
 
 # function called for cleaning data
 def clean_prev(cwd):
-    print('in run -> clean')
+    print('in run -> clean repo')
     print('clean was specified: previous model and test results are being removed')
     files_to_remove = []
     pathways = ['/data/raw/', '/data/temp/', '/data/out/']
@@ -48,15 +49,16 @@ def clean_prev(cwd):
 # function for running test case
 def test(cwd):
     print('in run -> test')
-    print('Will run the current process on a test subset of data: features -> model.')
+    print('Will run the current process on a test subset of data: features (pt. 1 and 2) -> model.')
 
     with open('config/test_params.json') as fh:
         test_cfg = json.load(fh)
 
     # data
-    early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0)
+    early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0).drop(['floor'], axis = 1)
     # features
-    finished_dataset = time_features(cwd, early_dataset, False, **test_cfg)
+    cleaned_dataset = clean_raw(cwd, early_dataset, False, **test_cfg)
+    finished_dataset = time_features(cwd, cleaned_dataset, False, **test_cfg)
     # model
     modeled_predictions = generate_model(cwd, finished_dataset, False, **test_cfg)
 
@@ -74,15 +76,27 @@ def data(cwd):
 
     return get_data(cwd, **data_cfg)
 
-def features(cwd, ds):
+def features_1(cwd, ds):
     print('in run -> features')
+    print('part 1 of features call: cleaning raw data')
+
+    with open('config/clean_params.json') as fh:
+        clean_cfg = json.load(fh)
+
+    if ds.empty:
+        print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
+        ds = pd.read_csv(cwd + clean_cfg['temp_output'] + clean_cfg['in_name'])
+
+    return clean_raw(cwd, ds, True, **clean_cfg)
+
+def features_2(cwd, ds):
+    print('in run -> features')
+    print('part 2 of features call: generating features for model')
 
     with open('config/features_params.json') as fh:
         features_cfg = json.load(fh)
 
-    if ds.empty:
-        print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
-        ds = pd.read_csv(cwd + features_cfg['temp_output'] + features_cfg['inter_name'], index_col = 0)
+    # no warning because features_2 runs after features_1
 
     return time_features(cwd, ds, True, **features_cfg)
 
@@ -94,9 +108,8 @@ def model(cwd, ds):
 
     if ds.empty:
         print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
-        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'], index_col = 0)
+        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
 
-        ds[model_cfg['timestamp_col_tree']] = ds[model_cfg['timestamp_col_tree']].transform(pd.Timestamp)
 
     return generate_model(cwd, ds, True, **model_cfg)
 
@@ -133,7 +146,8 @@ def main(targets):
         
     finished_dataset = pd.DataFrame()
     if 'features' in targets:
-        finished_dataset = features(cwd, early_dataset)
+        cleaned_datset = features_1(cwd, early_dataset)
+        finished_dataset = features_2(cwd, cleaned_datset)
         order.append('features')
         
     modeled_dataset = pd.DataFrame()

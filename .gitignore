@@ -2,7 +2,10 @@
 
 # Files to not update
 data/
-test/testdata/test_data_features.csv
+test/testdata/*
+
+# Files to still include
+!test/testdata/test_data.csv
 
 # macOS Files
 .DS_Store

@@ -1,0 +1,10 @@
+{
+  "temp_output": "/data/temp/",
+  "in_name": "combined_floors.csv", 
+  "out_name": "combined_floors_cleaned.csv",
+  "time_col": "time",
+  "time_changed": "time_transformed",
+  "time_floor_val": "1H",
+  "split_date": "2018-08-01",
+  "energy_col": "energy"
+}
