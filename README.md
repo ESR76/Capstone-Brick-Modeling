@@ -24,7 +24,7 @@ We also initially pulled other temperature and climate information to use in thi
 
 
 ## Running the Code
-To test our code, please first clone the repository.
+To test our code, please first clone the repository. If you're concerned that you won't have the proper packages to run something in our code, use the [Docker image](https://hub.docker.com/repository/docker/esr76/capstone-brick-modeling/general) associated with this project - we recommend using the "latest" tag (or the "final" tag if it's available **still under development**). It is designed to be run on UCSD's JupyterHub service using the base UCSD notebook as a base, for which instructions to use it can be found [here](https://github.com/ucsd-ets/datahub-example-notebook).
 
 - To run the modeling pipeline on the original data and compare to our paper/poster run the line:
     - "python3 run.py data features model" **OR** 
@@ -32,7 +32,7 @@ To test our code, please first clone the repository.
 
 **Under development**
 - To run any stages that are not part of the main modeling pipeline run:
-    - "python3 run.py _____" where _____ refers to the keyword
+    - "python3 run.py _____" where _____ can be filled in with the keyword
     - Options planned to be included are: visualize, optimize.
 
 **End of development**
