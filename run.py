@@ -49,13 +49,13 @@ def clean_prev(cwd):
 # function for running test case
 def test(cwd):
     print('in run -> test')
-    print('Will run the current process on a test subset of data: features -> model.')
+    print('Will run the current process on a test subset of data: features (pt. 1 and 2) -> model.')
 
     with open('config/test_params.json') as fh:
         test_cfg = json.load(fh)
 
     # data
-    early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0)
+    early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0).drop(['floor'], axis = 1)
     # features
     cleaned_dataset = clean_raw(cwd, early_dataset, False, **test_cfg)
     finished_dataset = time_features(cwd, cleaned_dataset, False, **test_cfg)

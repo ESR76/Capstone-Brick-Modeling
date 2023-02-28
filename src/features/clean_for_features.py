@@ -17,20 +17,22 @@ def clean_raw(cwd, data, is_train, **params):
 		print("in run -> features")
 
 	# temp time strips UTC addition and then converts to timestamp
-	data.loc[:, 'temp_time'] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
+	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
 
 	# floor data timestamps to the nearest hour here and get hours
-	data.loc[:, params['time_changed']] = data.loc[:, 'temp_time'].transform(lambda x: x.floor(freq = params['time_floor_val']))
-	data = data.drop([params['time_col'], 'temp_time'], axis = 1)
+	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: x.floor(freq = params['time_floor_val']))
+
+	data = data.rename({params['time_col']: params['time_changed']}, axis = 1)
 
 	split_date = params['split_date']
+	print('past split date')
 
 	# split into train and test for impute purposes - train set getting hour column to be used properly
 	# based on a date for approximately 70/30% split where 30% is most recent
-	train_set = data.loc[data.loc[:, params['time_changed']] < split_date, :]
+	train_set = data.loc[data[params['time_changed']] < split_date, :]
 	train_set.loc[:, 'hour'] = train_set.loc[:, params['time_changed']].transform(lambda x: x.hour)
 
-	test_set = data.loc[~(data.loc[:, params['time_changed']] < split_date), :]
+	test_set = data.loc[~(data[params['time_changed']] < split_date), :]
 	test_set.loc[:, 'train'] = False
 
 	training_percentage = train_set.shape[0] / data.shape[0] * 100
@@ -46,8 +48,8 @@ def clean_raw(cwd, data, is_train, **params):
 	min_ts = medians.index[0]
 	max_ts = medians.index[len(medians) - 1]
 
-	# FIX - should this be the split date?
-	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, max_ts, freq=params['time_floor_val']))
+	# FIX DOCUMENTATION - originally did this with max_ts but split_date makes more sense
+	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, split_date, freq=params['time_floor_val']))
 
 	complete_times_train = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
 	complete_times_train.loc[:, 'hour'] = complete_times_train.index.hour
@@ -63,6 +65,16 @@ def clean_raw(cwd, data, is_train, **params):
 	imputed_meds = imputed_meds.loc[:, keep_cols_y].rename(dict(zip(keep_cols_y, keep_cols)), axis = 1)
 
 	complete_times_train.loc[(complete_times_train[params['energy_col']].isna()), :] = imputed_meds
+
+	# essentially, handles the case where a certain hour value doesn't have its on median (specifically more common in test case)
+	# this is inherently flawed in the test case because it means the model will likely predict to baseline value which is very common
+	if complete_times_train[params['energy_col']].isna().shape[0] != 0:
+		overall_medians = train_set.median(numeric_only = True).drop(['hour'])
+
+		complete_times_train.loc[(complete_times_train[params['energy_col']].isna()), :] = complete_times_train.loc[(complete_times_train[params['energy_col']].isna()), :].fillna(overall_medians)
+		
+		# need to run again to handle nulls from previous statement
+		complete_times_train.loc[:, 'hour'] = complete_times_train.index.hour
 
 	# making the median test set and defining which variables correspond to a training and testing set
 	complete_times_train.loc[:, 'train'] = True

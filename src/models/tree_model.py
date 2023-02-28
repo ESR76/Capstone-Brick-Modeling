@@ -37,10 +37,13 @@ def generate_model(cwd, data, is_train, **params):
 	clf = clf.fit(Xtrain, Ytrain)
 	y_pred = clf.predict(Xtest)
 	pred_series = pd.Series(y_pred).rename("preds")
+
 	mse = mean_squared_error(Ytest,pred_series)
 
+	# needed to move from 2 decimal points to 4 because it looks like it's doing really well on the cost data?
+	# like even better than the other one?
 	print("*****")
-	print('MSE: {0:.2f}.'.format(mse))
+	print('MSE: {0:.4f}.'.format(mse))
 	print("*****")
 	
 	if is_train:
@@ -49,9 +52,9 @@ def generate_model(cwd, data, is_train, **params):
 
 		pred_series.to_csv(cwd + params['final_output'] + final_name, index = False)
 	else:
-		training_data.to_csv(cwd + params['test_directory'] + train_name)
-		testing_data.to_csv(cwd + params['test_directory'] + test_name)
+		training_data.to_csv(cwd + params['test_directory'] + train_name, index = False)
+		testing_data.to_csv(cwd + params['test_directory'] + test_name, index = False)
 
-		pred_series.to_csv(cwd + params['test_directory'] + final_name)
+		pred_series.to_csv(cwd + params['test_directory'] + final_name, index = False)
 
 	return pred_series
