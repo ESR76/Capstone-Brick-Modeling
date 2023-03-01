@@ -120,6 +120,7 @@ def clean_raw(cwd, data, is_train, is_optimize, **params):
 	else:
 		data = optimize_cleaning(data, **params)
 
+	data.loc[:, 'bias'] = 1
 
 	if is_train or is_optimize:
 		data.to_csv(cwd + params['temp_output'] + final_name, index = False)
