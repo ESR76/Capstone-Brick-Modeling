@@ -1,31 +1,32 @@
 import pandas as pd
 import os
 
-def clean_raw(cwd, data, is_train, **params):
-	final_name = params['out_name']
+def optimize_cleaning(data, **params):
+	data.loc[:, 'hour'] = data.loc[:, params['time_changed']].transform(lambda x: x.hour)
+	medians = data.groupby(params['time_changed']).median()
+	hour_medians = data.groupby(['hour']).median()
 
-	if is_train:
-		if os.path.isdir(cwd + params['temp_output']):
-			files = os.listdir(cwd + params['temp_output'])
+	min_ts = medians.index[0]
+	max_ts = medians.index[len(medians) - 1]
 
-			if final_name in files:
-				print('Timestamped data already found - regenerating because of features call.')
-		else:
-			os.mkdir(cwd + params['temp_output'])
-	else:
-		print("no run -> data call because test data is already present")
-		print("in run -> features")
+	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, max_ts, freq=params['time_floor_val']))
 
-	# temp time strips UTC addition and then converts to timestamp
-	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
+	complete_times = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
+	complete_times.loc[:, 'hour'] = complete_times.index.hour
 
-	# floor data timestamps to the nearest hour here and get hours
-	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: x.floor(freq = params['time_floor_val']))
+	keep_cols = list(complete_times.columns)[0: len(complete_times.columns) - 1]
+	keep_cols_y = [x + "_y" for x in keep_cols]
 
-	data = data.rename({params['time_col']: params['time_changed']}, axis = 1)
+	# merge then keep the relevant columns based on merge logic (no the most efficient but didn't have time to clean)
+	imputed_meds = complete_times.loc[complete_times[params['energy_col']].isna(), :].merge(hour_medians, left_on = 'hour', right_index = True)
+	imputed_meds = imputed_meds.loc[:, keep_cols_y].rename(dict(zip(keep_cols_y, keep_cols)), axis = 1)
 
+	complete_times.loc[(complete_times[params['energy_col']].isna()), :] = imputed_meds
+
+	return complete_times.reset_index().rename({'index': params['time_col']}, axis = 1).drop(['hour'], axis = 1)
+
+def non_optimize_cleaning(data, **params):
 	split_date = params['split_date']
-	print('past split date')
 
 	# split into train and test for impute purposes - train set getting hour column to be used properly
 	# based on a date for approximately 70/30% split where 30% is most recent
@@ -46,7 +47,6 @@ def clean_raw(cwd, data, is_train, **params):
 	medians = train_set.groupby(params['time_changed']).median()
 
 	min_ts = medians.index[0]
-	max_ts = medians.index[len(medians) - 1]
 
 	# FIX DOCUMENTATION - originally did this with max_ts but split_date makes more sense
 	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, split_date, freq=params['time_floor_val']))
@@ -83,9 +83,44 @@ def clean_raw(cwd, data, is_train, **params):
 	medians_test.index = medians_test.index.rename('index')
 	medians_test.loc[:, 'train'] = False
 
-	data = pd.concat([complete_times_train.reset_index(), medians_test.reset_index()]).drop(['hour'], axis = 1).rename({'index': params['time_col']}, axis = 1)
+	return pd.concat([complete_times_train.reset_index(), medians_test.reset_index()]).drop(['hour'], axis = 1).rename({'index': params['time_col']}, axis = 1)
+
+
+### MAIN FUNCTION ###
+def clean_raw(cwd, data, is_train, is_optimize, **params):
+	final_name = params['out_name']
 
 	if is_train:
+		if os.path.isdir(cwd + params['temp_output']):
+			files = os.listdir(cwd + params['temp_output'])
+
+			if final_name in files:
+				print('Timestamped data already found - will use instead of regenerating for time saving.')
+				print('If you would like to regenerate this file, please run "python3 run.py clean" in the terminal before calling features again.')
+
+				return pd.read_csv(cwd + params['temp_output'] + final_name)
+		else:
+			os.mkdir(cwd + params['temp_output'])
+	elif not is_optimize:
+		print("no run -> data call because test data is already present")
+		print("in run -> features")
+
+	# temp time strips UTC addition and then converts to timestamp
+	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
+
+	# floor data timestamps to the nearest hour here and get hours
+	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: x.floor(freq = params['time_floor_val']))
+
+	data = data.rename({params['time_col']: params['time_changed']}, axis = 1)
+
+	# handles training and test cases
+	if not is_optimize:
+		data = non_optimize_cleaning(data, **params)
+	else:
+		data = optimize_cleaning(data, **params)
+
+
+	if is_train or is_optimize:
 		data.to_csv(cwd + params['temp_output'] + final_name, index = False)
 	else:
 		data.to_csv(cwd + params['test_directory'] + final_name, index = False)

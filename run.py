@@ -57,16 +57,17 @@ def test(cwd):
     # data
     early_dataset = pd.read_csv(cwd + test_cfg['test_directory'] + test_cfg['orig_name'], index_col = 0).drop(['floor'], axis = 1)
     # features
-    cleaned_dataset = clean_raw(cwd, early_dataset, False, **test_cfg)
+    cleaned_dataset = clean_raw(cwd, early_dataset, False, False, **test_cfg)
     finished_dataset = time_features(cwd, cleaned_dataset, False, **test_cfg)
     # model
-    modeled_predictions = generate_model(cwd, finished_dataset, False, **test_cfg)
+    modeled_predictions = generate_model(cwd, finished_dataset, False, False, **test_cfg)
 
     print('finished with test')
     return
 
 # function for running current modeling steps
 def data(cwd):
+    print('\n')
     print('in run -> data')
     with open('config/data_params.json') as fh:
         data_cfg = json.load(fh)
@@ -77,6 +78,7 @@ def data(cwd):
     return get_data(cwd, **data_cfg)
 
 def features_1(cwd, ds):
+    print('\n')
     print('in run -> features')
     print('part 1 of features call: cleaning raw data')
 
@@ -87,10 +89,10 @@ def features_1(cwd, ds):
         print('data was not in call to run.py file - will pull data from data/temp assuming data has been run before. Will raise error if data files never generated.')
         ds = pd.read_csv(cwd + clean_cfg['temp_output'] + clean_cfg['in_name'])
 
-    return clean_raw(cwd, ds, True, **clean_cfg)
+    return clean_raw(cwd, ds, True, False, **clean_cfg)
 
 def features_2(cwd, ds):
-    print('in run -> features')
+    print('\nin run -> features')
     print('part 2 of features call: generating features for model')
 
     with open('config/features_params.json') as fh:
@@ -101,6 +103,7 @@ def features_2(cwd, ds):
     return time_features(cwd, ds, True, **features_cfg)
 
 def model(cwd, ds):
+    print('\n')
     print("in run -> model")
 
     with open('config/model_params.json') as fh:
@@ -111,11 +114,33 @@ def model(cwd, ds):
         ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
 
 
-    return generate_model(cwd, ds, True, **model_cfg)
+    return generate_model(cwd, ds, True, False, **model_cfg)
 
 def visualize(cwd, ds):
     print('in run -> visualize')
     print('visualize has not been defined yet.')
+    return
+
+def optimize(cwd):
+    print('\n')
+    print('in run -> optimize')
+    print('Optimize involves going through the pipeline again quickly, so it may take some time to run.')
+
+    # pulls optimize params
+    with open('config/optimize_params.json') as fh:
+        optimize_cfg = json.load(fh)
+
+    print('Optimize assumes that you have run the data part of the pipeline at least so it will raise an error if you have not yet done so.')
+
+    ds = pd.read_csv(cwd + optimize_cfg['temp_output'] + optimize_cfg['in_name'])
+
+    ds = clean_raw(cwd, ds, True, True, **optimize_cfg)
+    ds = time_features(cwd, ds, True, **optimize_cfg)
+
+
+    # STILL UNDER DEVELOPMENT
+
+
     return
 
 def main(targets):
@@ -146,8 +171,8 @@ def main(targets):
         
     finished_dataset = pd.DataFrame()
     if 'features' in targets:
-        cleaned_datset = features_1(cwd, early_dataset)
-        finished_dataset = features_2(cwd, cleaned_datset)
+        cleaned_dataset = features_1(cwd, early_dataset)
+        finished_dataset = features_2(cwd, cleaned_dataset)
         order.append('features')
         
     modeled_dataset = pd.DataFrame()
@@ -158,6 +183,10 @@ def main(targets):
     if 'visualize' in targets:
         visualize(cwd, modeled_dataset)
         order.append('visualize')
+
+    if 'optimize' in targets:
+        optimize(cwd)
+        order.append('optimize')
     
     return order
 

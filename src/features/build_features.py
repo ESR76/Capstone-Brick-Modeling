@@ -9,8 +9,10 @@ def create_time_cols(data, time_col):
 	data['day'] = data[time_col].transform(lambda x: x.day)
 	data['weekday'] = data[time_col].transform(lambda x: x.weekday())
 	data['hour'] = data[time_col].transform(lambda x: x.hour)
-	data['minute'] = data[time_col].transform(lambda x: x.minute)
-	data['second'] = data[time_col].transform(lambda x: x.second)
+
+	# Currently commenting these out because there is no difference
+	#data['minute'] = data[time_col].transform(lambda x: x.minute)
+	#data['second'] = data[time_col].transform(lambda x: x.second)
 
 	data = data.drop([time_col], axis = 1)
 
@@ -40,8 +42,6 @@ def cost_mod_energy(data, **params):
 	data = data.drop([params['energy_col']], axis = 1)
 
 	return data
-
-
 
 def time_features(cwd, data, is_train, **params):
 	final_name = params['pre_model_name']
