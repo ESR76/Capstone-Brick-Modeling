@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 
+# DOES IT MAKE SENSE TO RE-DO THIS OPTIMIZATION OR DO WE JUST USE THE MODEL WE ALREADY HAVE BY RE-READING DATA?
 def optimize_cleaning(data, **params):
 	data.loc[:, 'hour'] = data.loc[:, params['time_changed']].transform(lambda x: x.hour)
 	medians = data.groupby(params['time_changed']).median()

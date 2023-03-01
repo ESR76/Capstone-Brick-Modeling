@@ -28,7 +28,8 @@ def clean_prev(cwd):
             if os.path.isdir(cwd + pathway):
                 files = os.listdir(cwd + pathway)
                 for file in files:
-                    files_to_remove.append(cwd + pathway + file)
+                    if file != 'output_testsets':
+                        files_to_remove.append(cwd + pathway + file)
 
     # Test files
     test_files = os.listdir(cwd + '/test/' + 'testdata/')
@@ -39,6 +40,11 @@ def clean_prev(cwd):
         test_files[i] = new_file
 
     files_to_remove.extend(test_files)
+
+    # optimize files
+    optfiles = os.listdir(cwd + '/data/out/output_testsets/')
+    for file in optfiles:
+        files_to_remove.append(cwd + '/data/out/output_testsets/' + file)
 
     for file in files_to_remove:
         os.remove(file)
@@ -113,7 +119,6 @@ def model(cwd, ds):
         print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
         ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
 
-
     return generate_model(cwd, ds, True, False, **model_cfg)
 
 def visualize(cwd, ds):
@@ -137,10 +142,10 @@ def optimize(cwd):
     ds = clean_raw(cwd, ds, True, True, **optimize_cfg)
     ds = time_features(cwd, ds, True, **optimize_cfg)
 
+    ds = generate_model(cwd, ds, True, True, **optimize_cfg)
+
 
     # STILL UNDER DEVELOPMENT
-
-
     return
 
 def main(targets):

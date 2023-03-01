@@ -10,7 +10,7 @@ def create_time_cols(data, time_col):
 	data['weekday'] = data[time_col].transform(lambda x: x.weekday())
 	data['hour'] = data[time_col].transform(lambda x: x.hour)
 
-	# Currently commenting these out because there is no difference
+	# Currently commenting these out because there is no difference at the 1 hour flooring
 	#data['minute'] = data[time_col].transform(lambda x: x.minute)
 	#data['second'] = data[time_col].transform(lambda x: x.second)
 
