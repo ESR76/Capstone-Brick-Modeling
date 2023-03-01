@@ -32,6 +32,14 @@ def regular_model(data, **params):
 
 	return training_data, testing_data, pred_series
 
+def reduce_temp_setpoint(x, val):
+	reduced = x - val
+	return max(reduced, 0)
+
+def reduce_air_setpoint(x, val):
+	reduced = x - val
+	return max(reduced, 0)
+
 def optimize_model(data, **params):
 	if os.path.isdir(cwd + params['optimize_versions_folder']):
 		files = os.listdir(cwd + params['optimize_versions_folder'])
@@ -41,7 +49,35 @@ def optimize_model(data, **params):
 	else:
 		os.mkdir(cwd + params['optimize_versions_folder'])
 
-	testing_datasets
+	output_col = params['output_col']
+
+	clf = tree.DecisionTreeRegressor(max_depth = params['max_depth'], min_samples_split = params['min_samples_split'])
+	clf = clf.fit(Xtrain, Ytrain)
+
+	Xtrain = data.drop([output_col], axis = 1)
+	Ytrain = data[output_col]
+
+	temp_options = params['temp_setpoint_options']
+	air_options = params['air_setpoint_options']
+
+	for t in temp_options:
+		for a in air_options:
+			Xtest = Xtrain
+			# apply transformation to both columns
+			Xtest[:, ''] = 
+			Xtest[:, ''] =
+
+			# choose a subset ??? and get y values to find differences???
+
+			y_pred = clf.predict(Xtest)
+			pred_series = pd.Series(y_pred).rename("preds")
+
+
+
+
+
+	# List of datasets to test:
+	# two types of setpoints:
 
 	# NEED TO FILL THIS IN
 	# want to create several different versions of the dataset and then run them each through the model

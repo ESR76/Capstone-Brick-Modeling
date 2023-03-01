@@ -16,5 +16,7 @@
   "timestamp_col_prophet": "time_transformed",
   "max_depth": 7,
   "min_samples_split": 5,
-  "optimize_versions_folder": "/data/out/output_testsets"
+  "optimize_versions_folder": "/data/out/output_testsets",
+  "temp_setpoint_options": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
+  "air_setpoint_options": [0, 5, 10, 20, 30, 40, 50, 100]
 }
