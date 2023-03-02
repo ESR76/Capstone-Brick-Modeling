@@ -11,10 +11,9 @@ def visualize_results(cwd, opt_results, is_train, **params):
 		os.mkdir(loc)
 
 	if is_train:
-		print("in visualize..")
 		direc = params['temp_output']
 	else:
-		print("in run -> visualize")
+		print("\nin run -> visualize for test data")
 		direc = params['test_directory']
 
 	### VISUALIZATION of DATA MEDIANS ###

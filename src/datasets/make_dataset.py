@@ -51,7 +51,6 @@ def get_floor_csvs(in_path, out_path, check_files, col_list, file_names, out_nam
 	return combine_floor_csvs(dfs, out_path, out_name)
 
 def get_data(cwd, **params):
-	print("in data..")
 	files = []
 	if not os.path.isdir(cwd + params['raw_output']):
 		os.mkdir(cwd + params['raw_output'])

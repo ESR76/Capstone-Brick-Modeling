@@ -50,6 +50,7 @@ def time_features(cwd, data, is_train, **params):
 		direc = params['temp_output']
 	else:
 		direc = params['test_directory']
+		print("\nin run -> features pt. 2 for test data")
 
 	files = os.listdir(cwd + direc)
 	if final_name in files:

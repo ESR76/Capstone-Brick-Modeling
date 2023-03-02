@@ -14,10 +14,9 @@ def optimize_model(cwd, model, is_train, **params):
 	direc = ""
 
 	if is_train:
-		print("in optimize..")
 		direc = params['final_output']
 	else:
-		print("in run -> optimize")
+		print("\nin run -> optimize for test data")
 		direc = params['test_directory']
 
 	if os.path.isdir(cwd + params['optimize_versions_folder']):

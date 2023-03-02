@@ -13,7 +13,6 @@ def generate_model(cwd, data, is_train, **params):
 	stop_early = False
 
 	if is_train:
-		print("in model..")
 		if os.path.isdir(cwd + params['final_output']):
 			files = os.listdir(cwd + params['final_output'])
 
@@ -24,7 +23,7 @@ def generate_model(cwd, data, is_train, **params):
 		else:
 			os.mkdir(cwd + params['final_output'])
 	else:
-		print("in run -> model")
+		print("\nin run -> model for test data")
 
 	training_data = data.loc[data.loc[:, "train"], :].reset_index(drop = True).drop(["train", "imputed"], axis = 1)
 	

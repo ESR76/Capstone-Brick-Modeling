@@ -3,30 +3,26 @@ import sys
 import json
 import os
 import pandas as pd
+import warnings
 from sklearn import tree
 
 # IMPORTS FOR SCRIPT
 sys.path.insert(0, 'src')
  
-import datasets.make_dataset
-from datasets.make_dataset import get_data
+from datasets.make_dataset import *
 
-import features.build_features, features.clean_features
-from features.build_features import time_features
-from features.clean_features import clean_raw
+from features.build_features import *
+from features.clean_features import *
 
-import models.tree_model
-from models.tree_model import generate_model
+from models.tree_model import *
 
-import optimization.optimize
-from optimization.optimize import optimize_model
+from optimization.optimize import *
 
-import visualization.visualize
-from visualization.visualize import visualize_results
+from visualization.visualize import *
 
 # function called for cleaning data
 def clean_prev(cwd):
-    print('in run -> clean repo')
+    print('\nin run -> clean repo')
     print('clean was specified: previous model and test results are being removed')
     files_to_remove = []
     pathways = ['/data/raw/', '/data/temp/', '/data/out/']
@@ -84,8 +80,8 @@ def clean_prev(cwd):
 
 # function for running test case
 def test(cwd):
-    print('in run -> test')
-    print('Will run the current process on a test subset of data: features (pt. 1 and 2) -> model.')
+    print('\nin run -> test')
+    print('Will run the current process on a test subset of data: features (pt. 1 and 2) -> model -> optimize -> visualize.')
 
     with open('config/test_params.json') as fh:
         test_cfg = json.load(fh)
@@ -108,7 +104,7 @@ def test(cwd):
 
 # function for running current modeling steps
 def data(cwd):
-    print('in run -> data')
+    print('\nin run -> data')
     with open('config/data_params.json') as fh:
         data_cfg = json.load(fh)
 
@@ -118,8 +114,7 @@ def data(cwd):
     return get_data(cwd, **data_cfg)
 
 def features_1(cwd, ds):
-    print('in run -> features')
-    print('part 1 of features call: cleaning raw data')
+    print('\nin run -> features pt. 1: cleaning raw data')
 
     with open('config/clean_params.json') as fh:
         clean_cfg = json.load(fh)
@@ -131,8 +126,7 @@ def features_1(cwd, ds):
     return clean_raw(cwd, ds, True, **clean_cfg)
 
 def features_2(cwd, ds):
-    print('\nin run -> features')
-    print('part 2 of features call: generating features for model')
+    print('\nin run -> features pt.2: generating features for model')
 
     with open('config/features_params.json') as fh:
         features_cfg = json.load(fh)
@@ -142,7 +136,7 @@ def features_2(cwd, ds):
     return time_features(cwd, ds, True, **features_cfg)
 
 def model(cwd, ds):
-    print("in run -> model")
+    print("\nin run -> model")
 
     with open('config/model_params.json') as fh:
         model_cfg = json.load(fh)
@@ -163,12 +157,12 @@ def optimize(cwd, mdl):
         print('The model keyword will be rerun briefly to grab the trained model to be used in the optimization.')
         mdl = model(cwd, pd.DataFrame())
 
-    print('in run -> optimize')
+    print('\nin run -> optimize')
 
     return optimize_model(cwd, mdl, True, **optimize_cfg)
 
 def visualize(cwd, ds):
-    print('in run -> visualize')
+    print('\nin run -> visualize')
 
     # pulls visualize params
     with open('config/visualize_params.json') as fh:
@@ -219,7 +213,7 @@ def main(targets):
 
     opt_results = pd.DataFrame()
     if 'optimize' in targets:
-        optimize(cwd, mdl)
+        opt_results = optimize(cwd, mdl)
         order.append('optimize')
 
     if 'visualize' in targets:
@@ -240,6 +234,7 @@ if __name__ == '__main__':
     # python run.py clean
 
     targets = sys.argv[1:]
+    warnings.filterwarnings('ignore')
 
     if 'all' in targets:
         targets.extend(['data', 'features', 'model', 'optimize', 'visualize'])

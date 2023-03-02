@@ -83,8 +83,8 @@ def clean_raw(cwd, data, is_train, **params):
 		else:
 			os.mkdir(cwd + params['temp_output'])
 	else:
-		print("no run -> data call because test data is already present")
-		print("in run -> features")
+		print("\nno run -> data call for test because test data is already present")
+		print("in run -> features for test")
 
 	# temp time strips UTC addition and then converts to timestamp
 	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
