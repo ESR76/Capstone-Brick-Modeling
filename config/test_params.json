@@ -15,5 +15,8 @@
   "test_data": "test_data_testing.csv",
   "max_depth": 7,
   "min_samples_split": 5,
-  "modeled_preds": "test_data_preds.csv"
+  "modeled_preds": "test_data_preds.csv",
+  "optimize_versions_folder": "/test/testdata/output_optsets/",
+  "optimize_options": {"Common Setpoint": [0, 1.5, 3, 5], "Actual Sup Flow SP": [0, 10, 20, 40, 100]},
+  "optimize_results": "test_data_optimization_results.csv"
 }

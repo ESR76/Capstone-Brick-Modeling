@@ -1,32 +1,7 @@
 import pandas as pd
 import os
 
-# DOES IT MAKE SENSE TO RE-DO THIS OPTIMIZATION OR DO WE JUST USE THE MODEL WE ALREADY HAVE BY RE-READING DATA?
-def optimize_cleaning(data, **params):
-	data.loc[:, 'hour'] = data.loc[:, params['time_changed']].transform(lambda x: x.hour)
-	medians = data.groupby(params['time_changed']).median()
-	hour_medians = data.groupby(['hour']).median()
-
-	min_ts = medians.index[0]
-	max_ts = medians.index[len(medians) - 1]
-
-	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, max_ts, freq=params['time_floor_val']))
-
-	complete_times = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
-	complete_times.loc[:, 'hour'] = complete_times.index.hour
-
-	keep_cols = list(complete_times.columns)[0: len(complete_times.columns) - 1]
-	keep_cols_y = [x + "_y" for x in keep_cols]
-
-	# merge then keep the relevant columns based on merge logic (no the most efficient but didn't have time to clean)
-	imputed_meds = complete_times.loc[complete_times[params['energy_col']].isna(), :].merge(hour_medians, left_on = 'hour', right_index = True)
-	imputed_meds = imputed_meds.loc[:, keep_cols_y].rename(dict(zip(keep_cols_y, keep_cols)), axis = 1)
-
-	complete_times.loc[(complete_times[params['energy_col']].isna()), :] = imputed_meds
-
-	return complete_times.reset_index().rename({'index': params['time_col']}, axis = 1).drop(['hour'], axis = 1)
-
-def non_optimize_cleaning(data, **params):
+def train_test_cleaning(data, **params):
 	split_date = params['split_date']
 
 	# split into train and test for impute purposes - train set getting hour column to be used properly
@@ -49,7 +24,6 @@ def non_optimize_cleaning(data, **params):
 
 	min_ts = medians.index[0]
 
-	# FIX DOCUMENTATION - originally did this with max_ts but split_date makes more sense
 	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, split_date, freq=params['time_floor_val']))
 
 	complete_times_train = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
@@ -88,7 +62,7 @@ def non_optimize_cleaning(data, **params):
 
 
 ### MAIN FUNCTION ###
-def clean_raw(cwd, data, is_train, is_optimize, **params):
+def clean_raw(cwd, data, is_train, **params):
 	final_name = params['out_name']
 
 	if is_train:
@@ -102,7 +76,7 @@ def clean_raw(cwd, data, is_train, is_optimize, **params):
 				return pd.read_csv(cwd + params['temp_output'] + final_name)
 		else:
 			os.mkdir(cwd + params['temp_output'])
-	elif not is_optimize:
+	else:
 		print("no run -> data call because test data is already present")
 		print("in run -> features")
 
@@ -113,16 +87,11 @@ def clean_raw(cwd, data, is_train, is_optimize, **params):
 	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: x.floor(freq = params['time_floor_val']))
 
 	data = data.rename({params['time_col']: params['time_changed']}, axis = 1)
-
-	# handles training and test cases
-	if not is_optimize:
-		data = non_optimize_cleaning(data, **params)
-	else:
-		data = optimize_cleaning(data, **params)
+	data = train_test_cleaning(data, **params)
 
 	data.loc[:, 'bias'] = 1
 
-	if is_train or is_optimize:
+	if is_train:
 		data.to_csv(cwd + params['temp_output'] + final_name, index = False)
 	else:
 		data.to_csv(cwd + params['test_directory'] + final_name, index = False)
