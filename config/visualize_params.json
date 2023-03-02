@@ -1,2 +1,4 @@
 {
+	"final_output": "/data/out/",
+	"optimize_results": "optimization_results.csv"
 }

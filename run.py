@@ -1,9 +1,11 @@
+# IMPORTS FOR MAIN CODE
 import sys
 import json
 import os
 import pandas as pd
 from sklearn import tree
 
+# IMPORTS FOR SCRIPT
 sys.path.insert(0, 'src')
  
 import datasets.make_dataset
@@ -19,6 +21,9 @@ from models.tree_model import generate_model
 import optimization.optimize
 from optimization.optimize import optimize_model
 
+import visualization.visualize
+from visualization.visualize import visualize_results
+
 # function called for cleaning data
 def clean_prev(cwd):
     print('in run -> clean repo')
@@ -26,7 +31,7 @@ def clean_prev(cwd):
     files_to_remove = []
     pathways = ['/data/raw/', '/data/temp/', '/data/out/']
 
-    # removing all data autodownloaded/generated
+    # removing all regular data autodownloaded/generated
     if os.path.isdir(cwd + '/data/'):
         for pathway in pathways:
             if os.path.isdir(cwd + pathway):
@@ -36,6 +41,7 @@ def clean_prev(cwd):
                         files_to_remove.append(cwd + pathway + file)
 
     # Test files
+    # don't need to check if test data is directory because it exists upon cloning
     test_files = os.listdir(cwd + '/test/' + 'testdata/')
     test_files.remove('test_data.csv')
 
@@ -49,9 +55,16 @@ def clean_prev(cwd):
     files_to_remove.extend(test_files)
 
     # optimize files
-    optfiles = os.listdir(cwd + '/data/out/output_optsets/')
-    for file in optfiles:
-        files_to_remove.append(cwd + '/data/out/output_optsets/' + file)
+    if os.path.isdir(cwd + '/data/out/output_optsets/'):
+        optfiles = os.listdir(cwd + '/data/out/output_optsets/')
+        for file in optfiles:
+            files_to_remove.append(cwd + '/data/out/output_optsets/' + file)
+
+    # Test optimize files
+    if os.path.isdir(cwd + '/test/testdata/output_optsets/'):
+        optfiles = os.listdir(cwd + '/test/testdata/output_optsets/')
+        for file in optfiles:
+            files_to_remove.append(cwd + '/test/testdata/output_optsets/' + file)
 
     for file in files_to_remove:
         os.remove(file)
@@ -76,13 +89,14 @@ def test(cwd):
     test_mdl = generate_model(cwd, finished_dataset, False, **test_cfg)
     # optimize
     output_optimize = optimize_model(cwd, test_mdl, False, **test_cfg)
+    # visualize
+    # STILL FILLING IN
 
     print('finished with test')
     return
 
 # function for running current modeling steps
 def data(cwd):
-    print('\n')
     print('in run -> data')
     with open('config/data_params.json') as fh:
         data_cfg = json.load(fh)
@@ -93,7 +107,6 @@ def data(cwd):
     return get_data(cwd, **data_cfg)
 
 def features_1(cwd, ds):
-    print('\n')
     print('in run -> features')
     print('part 1 of features call: cleaning raw data')
 
@@ -118,7 +131,6 @@ def features_2(cwd, ds):
     return time_features(cwd, ds, True, **features_cfg)
 
 def model(cwd, ds):
-    print('\n')
     print("in run -> model")
 
     with open('config/model_params.json') as fh:
@@ -131,24 +143,32 @@ def model(cwd, ds):
     return generate_model(cwd, ds, True, **model_cfg)
 
 def optimize(cwd, mdl):
-    print('\n')
-    print('in run -> optimize')
-
     # pulls optimize params
     with open('config/optimize_params.json') as fh:
         optimize_cfg = json.load(fh)
 
     if mdl is None:
         print('Optimize assumes that you have run the model part of the pipeline at least so it will raise an error if you have not yet done so.')
+        print('The model keyword will be rerun briefly to grab the trained model to be used in the optimization.')
         mdl = model(cwd, pd.DataFrame())
 
-    # STILL UNDER DEVELOPMENT
+    print('in run -> optimize')
+
     return optimize_model(cwd, mdl, True, **optimize_cfg)
 
-def visualize(cwd):
+def visualize(cwd, ds):
     print('in run -> visualize')
-    print('visualize has not been defined yet.')
-    return
+    print('UNDER DEVELOPMENT')
+
+    # pulls visualize params
+    with open('config/visualize_params.json') as fh:
+        visualize_cfg = json.load(fh)
+
+    if ds.empty:
+        print('optimize was not in call to run.py file - will pull data from data/out assuming optimize & rest of the data pipeline has been run before. Will raise error if features file never generated.')
+        ds = pd.read_csv(cwd + visualize_cfg['final_output'] + model_cfg['optimization_results'])
+
+    return visualize_results(cwd, ds, True, **visualize_cfg)
 
 def main(targets):
     '''
@@ -193,7 +213,7 @@ def main(targets):
         order.append('optimize')
 
     if 'visualize' in targets:
-        visualize(cwd)
+        print(visualize(cwd, opt_results))
         order.append('visualize')
 
     return order
