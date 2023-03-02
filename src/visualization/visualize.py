@@ -41,8 +41,36 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	plt.tight_layout()
 	plt.savefig(loc + 'data_values_pre_imputation.png')
+	plt.clf()
+
+	## OTHER VISUALIZATIONS ##
 
 	### VISUALIZATION of OPTIMIZATION RESULTS ###
+	current_fig = sns.histplot(opt_results.loc[:, 'mean_difference'])
+	current_fig.set(title = 'Mean Differences Histogram')
+	current_fig.figure.savefig(loc + 'opt_results_mean_differences.png', bbox_inches='tight')
+	plt.clf()
+
+	current_fig = sns.histplot(opt_results.loc[:, 'median_difference'])
+	current_fig.set(title = 'Median Differences Histogram')
+	current_fig.figure.savefig(loc + 'opt_results_median_differences.png', bbox_inches='tight')
+	plt.clf()
+
+	current_fig = sns.histplot(opt_results.loc[:, 'min_difference'])
+	current_fig.set(title = 'Minimum Differences Histogram')
+	current_fig.figure.savefig(loc + 'opt_results_min_differences.png', bbox_inches='tight')
+	plt.clf()
+
+	current_fig = sns.histplot(opt_results.loc[:, 'max_difference'])
+	current_fig.set(title = 'Maximum Differences Histogram')
+	current_fig.figure.savefig(loc + 'opt_results_max_differences.png', bbox_inches='tight')
+	plt.clf()
+
+	scatter_obj = sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'air_decrease', size = 'mean_difference')
+	## LABELS - BBOX_INCHES keyword saves the labels
+	scatter_obj.set(xlabel = 'Temperature Decrease', ylabel = 'Air Supply Decrease', title = 'Air Supply vs. Temperature Decrease')
+	scatter_obj.figure.savefig(loc + 'opt_results_scatter_mean.png', bbox_inches='tight')
+	plt.clf()
 
 	# TO DO
 

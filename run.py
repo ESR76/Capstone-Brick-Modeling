@@ -169,7 +169,6 @@ def optimize(cwd, mdl):
 
 def visualize(cwd, ds):
     print('in run -> visualize')
-    print('UNDER DEVELOPMENT')
 
     # pulls visualize params
     with open('config/visualize_params.json') as fh:

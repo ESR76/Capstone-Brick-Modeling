@@ -61,6 +61,8 @@ def optimize_model(cwd, model, is_train, **params):
 			dfs.append(Xtest)
 			results.append((t, a, differences.mean(), differences.median(), differences.min(), differences.max()))
 
+	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX
+
 	pred_df = pd.DataFrame(results, columns = ['temp_decrease', 'air_decrease', 'mean_difference', 'median_difference', 'min_difference', 'max_difference'])
 
 	for i, df in enumerate(dfs):
