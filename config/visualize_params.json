@@ -1,4 +1,10 @@
 {
+	"out_name": "combined_floors_cleaned.csv",
+	"temp_output": "/data/temp/",
 	"final_output": "/data/out/",
-	"optimize_results": "optimization_results.csv"
+	"save_viz": "/visualizations/",
+	"optimize_results": "optimization_results.csv",
+	"time_col": "time",
+	"viz_columns": ["time", "Actual Sup Flow SP","Zone Temperature","Actual Supply Flow","energy","Outside Air Temp","Humidity"]
+
 }

@@ -11,22 +11,27 @@ def optimize_model(cwd, model, is_train, **params):
 	final_name = params['optimize_results']
 	output_col = params['output_col']
 	data = pd.DataFrame()
-
-	if os.path.isdir(cwd + params['optimize_versions_folder']):
-			files = os.listdir(cwd + params['optimize_versions_folder'])
-
-			if final_name in files:
-				print('Optimize data already found - regenerating because of optimize call.')
-	else:
-		os.mkdir(cwd + params['optimize_versions_folder'])
+	direc = ""
 
 	if is_train:
 		print("in optimize..")
-		data = pd.read_csv(cwd + params['final_output'] + params['train_data'])
-
+		direc = params['final_output']
 	else:
 		print("in run -> optimize")
-		data = pd.read_csv(cwd + params['test_directory'] + params['train_data'])
+		direc = params['test_directory']
+
+	if os.path.isdir(cwd + params['optimize_versions_folder']):
+			files = os.listdir(cwd + direc)
+
+			if final_name in files:
+				print('Optimize data already found - will skip regenerating to save time.')
+				print('To regenerate - please run "python3 run.py clean" before calling optimize again.')
+
+				return pd.read_csv(cwd + direc + final_name)
+	else:
+		os.mkdir(cwd + params['optimize_versions_folder'])
+
+	data = pd.read_csv(cwd + direc + params['train_data'])
 
 	Xtrain = data.drop([output_col], axis = 1)
 	Ytrain = data.loc[:, output_col]
@@ -62,8 +67,8 @@ def optimize_model(cwd, model, is_train, **params):
 		df.to_csv(cwd + params['optimize_versions_folder'] + 'optimize_t{0}_a{1}.csv'.format(str(pred_df.loc[i, 'temp_decrease']).replace(".", ""), pred_df.loc[i, 'air_decrease']), index = False)
 
 	if is_train:
-		pred_df.to_csv(cwd + params['final_output'] + params['optimize_results'], index = False)
+		pred_df.to_csv(cwd + params['final_output'] + final_name, index = False)
 	else:
-		pred_df.to_csv(cwd + params['test_directory'] + params['optimize_results'], index = False)
+		pred_df.to_csv(cwd + params['test_directory'] + final_name, index = False)
 	
 	return pred_df

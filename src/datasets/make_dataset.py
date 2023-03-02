@@ -53,10 +53,18 @@ def get_floor_csvs(in_path, out_path, check_files, col_list, file_names, out_nam
 def get_data(cwd, **params):
 	print("in data..")
 	files = []
-	if os.path.isdir(cwd + params['raw_output']):
-		files = os.listdir(cwd + params['raw_output'])
-	else:
+	if not os.path.isdir(cwd + params['raw_output']):
 		os.mkdir(cwd + params['raw_output'])
+	else:
+		files = os.listdir(cwd + params['raw_output'])
+
+	if os.path.isdir(cwd + params['temp_output']):
+		files = os.listdir(cwd + params['temp_output'])
+		if params['out_name'] in files:
+			print('All data already downloaded and ready for features - will not redevelop for time saving.')
+			print('To redownload, please run "python3 run.py clean" and then call data again.')
+			return pd.read_csv(cwd + params['temp_output'] + params['out_name'])
+
 	# False for add_floor_names because cleaning version we're using does not use it or gain information from it
 	dataset = get_floor_csvs(cwd + params['raw_output'], cwd + params['temp_output'], files, params['col_list'], params['file_names'], params['out_name'], False)
 	return dataset

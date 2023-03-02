@@ -26,7 +26,7 @@ def generate_model(cwd, data, is_train, **params):
 	else:
 		print("in run -> model")
 
-	training_data = data.loc[data.loc[:, "train"], :].reset_index(drop = True).drop(["train"], axis = 1)
+	training_data = data.loc[data.loc[:, "train"], :].reset_index(drop = True).drop(["train", "imputed"], axis = 1)
 	
 	Xtrain = training_data.drop([output_col], axis = 1)
 	Ytrain = training_data[output_col]
@@ -37,7 +37,7 @@ def generate_model(cwd, data, is_train, **params):
 	if stop_early:
 		return clf
 	
-	testing_data = data.loc[~data.loc[:, "train"], :].reset_index(drop = True).drop(["train"], axis = 1)
+	testing_data = data.loc[~data.loc[:, "train"], :].reset_index(drop = True).drop(["train", "imputed"], axis = 1)
 	Xtest = testing_data.drop([output_col], axis = 1)
 	Ytest = testing_data[output_col]
 	

@@ -28,6 +28,7 @@ def train_test_cleaning(data, **params):
 
 	complete_times_train = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
 	complete_times_train.loc[:, 'hour'] = complete_times_train.index.hour
+	locs = complete_times_train[params['energy_col']].isna()
 
 	hour_medians = train_set.groupby(['hour']).median()
 
@@ -36,10 +37,14 @@ def train_test_cleaning(data, **params):
 	keep_cols_y = [x + "_y" for x in keep_cols]
 
 	# merge then keep the relevant columns based on merge logic (no the most efficient but didn't have time to clean)
-	imputed_meds = complete_times_train.loc[complete_times_train[params['energy_col']].isna(), :].merge(hour_medians, left_on = 'hour', right_index = True)
+	imputed_meds = complete_times_train.loc[locs, :].merge(hour_medians, left_on = 'hour', right_index = True)
 	imputed_meds = imputed_meds.loc[:, keep_cols_y].rename(dict(zip(keep_cols_y, keep_cols)), axis = 1)
 
-	complete_times_train.loc[(complete_times_train[params['energy_col']].isna()), :] = imputed_meds
+	complete_times_train.loc[locs, :] = imputed_meds
+
+	complete_times_train.loc[locs, 'imputed'] = True
+	complete_times_train.loc[~locs, 'imputed'] = False
+
 
 	# essentially, handles the case where a certain hour value doesn't have its on median (specifically more common in test case)
 	# this is inherently flawed in the test case because it means the model will likely predict to baseline value which is very common
@@ -57,6 +62,7 @@ def train_test_cleaning(data, **params):
 	medians_test = test_set.groupby(params['time_changed']).median()
 	medians_test.index = medians_test.index.rename('index')
 	medians_test.loc[:, 'train'] = False
+	medians_test.loc[:, 'imputed'] = False
 
 	return pd.concat([complete_times_train.reset_index(), medians_test.reset_index()]).drop(['hour'], axis = 1).rename({'index': params['time_col']}, axis = 1)
 

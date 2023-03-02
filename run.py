@@ -66,6 +66,17 @@ def clean_prev(cwd):
         for file in optfiles:
             files_to_remove.append(cwd + '/test/testdata/output_optsets/' + file)
 
+    # ADD VISUALIZATION FILES TO CLEANING - TO DO
+    if os.path.isdir(cwd + '/visualizations/'):
+        files = os.listdir(cwd + '/visualizations/')
+        for file in files:
+            files_to_remove.append(cwd + '/visualizations/' + file)
+
+    if os.path.isdir(cwd + '/test/testviz/'):
+        files = os.listdir(cwd + '/test/testviz/')
+        for file in files:
+            files_to_remove.append(cwd + '/test/testviz/' + file)
+
     for file in files_to_remove:
         os.remove(file)
 
@@ -90,6 +101,7 @@ def test(cwd):
     # optimize
     output_optimize = optimize_model(cwd, test_mdl, False, **test_cfg)
     # visualize
+    visualize_text = visualize_results(cwd, output_optimize, False, **test_cfg)
     # STILL FILLING IN
 
     print('finished with test')
@@ -166,7 +178,7 @@ def visualize(cwd, ds):
 
     if ds.empty:
         print('optimize was not in call to run.py file - will pull data from data/out assuming optimize & rest of the data pipeline has been run before. Will raise error if features file never generated.')
-        ds = pd.read_csv(cwd + visualize_cfg['final_output'] + model_cfg['optimization_results'])
+        ds = pd.read_csv(cwd + visualize_cfg['final_output'] + visualize_cfg['optimize_results'])
 
     return visualize_results(cwd, ds, True, **visualize_cfg)
 
@@ -232,7 +244,7 @@ if __name__ == '__main__':
     targets = sys.argv[1:]
 
     if 'all' in targets:
-        targets.extend(['data', 'features', 'model', 'optimize'])
+        targets.extend(['data', 'features', 'model', 'optimize', 'visualize'])
         targets.remove('all')
 
     run_order = main(targets)

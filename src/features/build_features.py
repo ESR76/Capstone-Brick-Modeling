@@ -45,6 +45,16 @@ def cost_mod_energy(data, **params):
 
 def time_features(cwd, data, is_train, **params):
 	final_name = params['pre_model_name']
+	direc = ""
+	if is_train:
+		direc = params['temp_output']
+	else:
+		direc = params['test_directory']
+
+	files = os.listdir(cwd + direc)
+	if final_name in files:
+		print("Feature-generated data already found, skipping regeneration.")
+		return pd.read_csv(cwd + direc + final_name)
 
 	# creating time column for standard cleaning pipeline
 	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: pd.Timestamp(x))
