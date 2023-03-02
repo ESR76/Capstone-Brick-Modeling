@@ -66,7 +66,6 @@ def clean_prev(cwd):
         for file in optfiles:
             files_to_remove.append(cwd + '/test/testdata/output_optsets/' + file)
 
-    # ADD VISUALIZATION FILES TO CLEANING - TO DO
     if os.path.isdir(cwd + '/visualizations/'):
         files = os.listdir(cwd + '/visualizations/')
         for file in files:
