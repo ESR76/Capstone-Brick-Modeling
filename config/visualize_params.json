@@ -1,5 +1,6 @@
 {
 	"out_name": "combined_floors_cleaned.csv",
+	"orig_name": "combined_floors.csv",
 	"temp_output": "/data/temp/",
 	"final_output": "/data/out/",
 	"save_viz": "/visualizations/",
