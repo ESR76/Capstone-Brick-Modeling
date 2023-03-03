@@ -2,7 +2,7 @@ import prophet as Prophet
 import pandas as pd
 import numpy as np
 
-# NEEDS TO BE MODIFIED TO FIT NEW PARAM/PIPELINE LOGIC
+# This does not fit current logic/params for the pipeline - remnant of an older version
 
 def generate_model(cwd, data, is_train, **params):
 	print("in model..")
