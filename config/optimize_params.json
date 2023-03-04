@@ -3,6 +3,9 @@
   "optimize_versions_folder": "/data/out/output_optsets/",
   "train_data": "model_training.csv",
   "output_col": "cost",
-  "optimize_options": {"Common Setpoint": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5], "Actual Sup Flow SP": [0, 5, 10, 20, 30, 40, 50, 100]},
-  "optimize_results": "optimization_results.csv"
+  "optimize_options": {"Common Setpoint": [0, 1, 2, 3.5, 5, 7.5, 10], "Actual Sup Flow SP": [0, 10, 20, 40, 50, 80, 100, 150, 200]},
+  "optimize_results": "optimization_results.csv",
+  "optimization_room_min": 45,
+  "optimization_room_avgmin": 100,
+  "optimization_room_max": 1000
 }

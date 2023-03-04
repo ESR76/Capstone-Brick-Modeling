@@ -3,9 +3,15 @@ import pandas as pd
 import numpy as np
 import os
 
-def reduce_setpoint(x, val):
+def reduce_setpoint(x, val, min_val = 0):
 	reduced = x - val
-	return max(reduced, 0)
+	return max(reduced, min_val)
+
+def low_barrier(x, val, min_val = 0):
+	reduced = x - val
+	if reduced < min_val:
+		return True
+	return False
 
 def optimize_model(cwd, model, is_train, **params):
 	final_name = params['optimize_results']
@@ -47,10 +53,13 @@ def optimize_model(cwd, model, is_train, **params):
 	Xtest = Xtrain.copy(deep = True)
 
 	# does it make sense to create this as a loop like this
-	for t in opt_options[columns[0]]:
-		for a in opt_options[columns[1]]:
+	for a in opt_options[columns[1]]:
+		for t in opt_options[columns[0]]:
+			# occupied
 			Xtest.loc[:, columns[0]] = Xtrain.loc[:, columns[0]].apply(reduce_setpoint, args = (t, ))
-			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, ))
+			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, params['optimization_room_min'], ))
+			
+			prop_limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_min'], )) / Xtrain.shape[0]
 
 			#print(Xtest.head(2))
 			y_pred = clf.predict(Xtest)
@@ -58,14 +67,25 @@ def optimize_model(cwd, model, is_train, **params):
 			differences = Ytrain - pred_series
 
 			dfs.append(Xtest)
-			results.append((t, a, differences.mean(), differences.median(), differences.min(), differences.max()))
+			results.append((t, a, "occupied", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
 
-	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX
+			# unoccupied
+			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, ))
+			prop_limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, )) / Xtrain.shape[0]
+			
+			y_pred = clf.predict(Xtest)
+			pred_series = pd.Series(y_pred).rename("preds")
+			differences = Ytrain - pred_series
 
-	pred_df = pd.DataFrame(results, columns = ['temp_decrease', 'air_decrease', 'mean_difference', 'median_difference', 'min_difference', 'max_difference'])
+			dfs.append(Xtest)
+			results.append((t, a, "unoccupied", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
+
+	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX/VARIABLES
+
+	pred_df = pd.DataFrame(results, columns = ['temp_decrease', 'air_decrease', 'air_limited', 'prop_boundary', 'mean_difference', 'median_difference', 'min_difference', 'max_difference'])
 
 	for i, df in enumerate(dfs):
-		df.to_csv(cwd + params['optimize_versions_folder'] + 'optimize_t{0}_a{1}.csv'.format(str(pred_df.loc[i, 'temp_decrease']).replace(".", ""), pred_df.loc[i, 'air_decrease']), index = False)
+		df.to_csv(cwd + params['optimize_versions_folder'] + 'optimize_t{0}_a{1}_{2}.csv'.format(str(pred_df.loc[i, 'temp_decrease']).replace(".", ""), pred_df.loc[i, 'air_decrease'], pred_df.loc[i, 'air_limited']), index = False)
 
 	if is_train:
 		pred_df.to_csv(cwd + params['final_output'] + final_name, index = False)

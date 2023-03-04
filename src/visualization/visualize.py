@@ -3,6 +3,13 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
+# should've changed the data but this is next best option - changing for visual only
+def visualize_hour(x):
+	replace = x - 8
+	if replace < 0:
+		replace = 24 + replace
+	return replace
+
 def visualize_results(cwd, opt_results, is_train, **params):
 	loc = cwd + params['save_viz']
 	direc = ""
@@ -21,11 +28,17 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plot_df = pd.read_csv(cwd + direc + params['orig_name'])
 
 	plot_df.loc[:, params['time_col']] = plot_df.loc[:, params['time_col']].transform(pd.Timestamp)
-	plot_df.loc[:, 'hour'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.hour)
+
+	plot_df.loc[:, 'hour'] = plot_df.loc[:, params['time_col']].transform(lambda x: visualize_hour(x.hour))
+
 	plot_df.loc[:, 'weekday'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.weekday)
-	#plot_df.loc[:, 'weekday'] = plot_df.loc[:, 'weekday'].replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
+	plot_df.loc[:, 'weekday'] = plot_df.loc[:, 'weekday'].replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
+	plot_df.loc[:, 'weekday'] = pd.Categorical(plot_df.loc[:, 'weekday'], categories = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"], ordered = True)
+
 	plot_df.loc[:, 'month'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.month)
-	#plot_df.loc[:, 'month'] = plot_df.loc[:, 'month'].replace({1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sept', 10: 'Oct', 11: 'Nov', 12: 'Dec'})
+	plot_df.loc[:, 'month'] = plot_df.loc[:, 'month'].replace({1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'})
+	plot_df.loc[:, 'month'] = pd.Categorical(plot_df.loc[:, 'month'], categories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ordered = True)
+
 	#plot_df.loc[:, 'year'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.year)
 	#plot_df.loc[:, 'month/year'] = plot_df.apply(lambda x: str(x['month']) + '/' + str(x['year']), axis = 1)
 
@@ -36,7 +49,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	weekday_groups = plot_df.groupby('weekday')['energy'].mean()#.replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
 	hour_groups = plot_df.groupby('hour')['energy'].mean()
 
-	fig, axes = plt.subplots(nrows=3, ncols=1, dpi=120, figsize=(18,6))
+	fig, axes = plt.subplots(nrows=3, ncols=1, dpi=300, figsize=(18,6))
 
 	sns.lineplot(data = hour_groups.reset_index(), x = 'hour', y = 'energy', ax = axes[0])
 	axes[0].set_title('Hour Means for Energy')
@@ -61,7 +74,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	#print(plot_df.head(5))
 	vis_columns = params['viz_columns']
 
-	fig, axes = plt.subplots(nrows=2, ncols=3, dpi=120, figsize=(18,6))
+	fig, axes = plt.subplots(nrows=2, ncols=3, dpi=300, figsize=(18,6))
 	for i, ax in enumerate(axes.flatten()):
 	    data = plot_df.loc[:, [vis_columns[0], vis_columns[i + 1]]]
 	    ax.plot(data.loc[:, vis_columns[0]], data.loc[:, vis_columns[i + 1]], color='red')
@@ -80,32 +93,58 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	## OTHER VISUALIZATIONS ##
 
 	### VISUALIZATION of OPTIMIZATION RESULTS ###
-	current_fig = sns.histplot(opt_results.loc[:, 'mean_difference'])
-	current_fig.set(title = 'Mean Differences Histogram')
-	current_fig.figure.savefig(loc + 'opt_results_mean_differences.png', bbox_inches='tight')
+	fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,6))
+	sns.histplot(opt_results.loc[:, 'mean_difference'], ax = axes[0, 0])
+	axes[0, 0].set(title = 'Mean Differences Histogram')
+
+	sns.histplot(opt_results.loc[:, 'median_difference'], ax = axes[0, 1])
+	axes[0, 1].set(title = 'Median Differences Histogram')
+
+	sns.histplot(opt_results.loc[:, 'min_difference'], ax = axes[1, 0])
+	axes[1, 0].set(title = 'Min Differences Histogram')
+
+	sns.histplot(opt_results.loc[:, 'max_difference'], ax = axes[1, 1])
+	axes[1, 1].set(title = 'Max Differences Histogram')
+
+	fig.suptitle('Histograms of Differences')
+	plt.tight_layout()
+	plt.savefig(loc + 'opt_results_differences.png', bbox_inches='tight')
 	plt.clf()
 
-	current_fig = sns.histplot(opt_results.loc[:, 'median_difference'])
-	current_fig.set(title = 'Median Differences Histogram')
-	current_fig.figure.savefig(loc + 'opt_results_median_differences.png', bbox_inches='tight')
+
+	fig, axes = plt.subplots(nrows=2, ncols=4, dpi=300, figsize=(18,6))
+	# air
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'median_difference', hue = 'air_limited', ax = axes[0, 0], alpha = 0.7)
+	axes[0, 0].set(xlabel = 'Air Supply Decrease', ylabel = 'Median Difference', title = 'Median Difference with Air Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'mean_difference', hue = 'air_limited', ax = axes[0, 1], alpha = 0.7)
+	axes[0, 1].set(xlabel = 'Air Supply Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Air Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'min_difference', hue = 'air_limited', ax = axes[0, 2], alpha = 0.7)
+	axes[0, 2].set(xlabel = 'Air Supply Decrease', ylabel = 'Min Difference', title = 'Min Difference with Air Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'max_difference', hue = 'air_limited', ax = axes[0, 3], alpha = 0.7)
+	axes[0, 3].set(xlabel = 'Air Supply Decrease', ylabel = 'Max Difference', title = 'Max Difference with Air Decrease')
+
+
+	# temp
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'median_difference', hue = 'air_limited', ax = axes[1, 0], alpha = 0.7)
+	axes[1, 0].set(xlabel = 'Temp Decrease', ylabel = 'Median Difference', title = 'Median Difference with Temp Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'mean_difference', hue = 'air_limited', ax = axes[1, 1], alpha = 0.7)
+	axes[1, 1].set(xlabel = 'Temp Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Temp Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'min_difference', hue = 'air_limited', ax = axes[1, 2], alpha = 0.7)
+	axes[1, 2].set(xlabel = 'Temp Decrease', ylabel = 'Min Difference', title = 'Min Difference with Temp Decrease')
+
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'max_difference', hue = 'air_limited', ax = axes[1, 3], alpha = 0.7)
+	axes[1, 3].set(xlabel = 'Temp Decrease', ylabel = 'Max Difference', title = 'Max Difference with Temp Decrease')
+
+	fig.suptitle('Optimization Results by Setpoint Decreasing')
+	plt.tight_layout()
+	plt.savefig(loc + 'opt_results_scatter.png', box_inches='tight')
 	plt.clf()
 
-	current_fig = sns.histplot(opt_results.loc[:, 'min_difference'])
-	current_fig.set(title = 'Minimum Differences Histogram')
-	current_fig.figure.savefig(loc + 'opt_results_min_differences.png', bbox_inches='tight')
-	plt.clf()
-
-	current_fig = sns.histplot(opt_results.loc[:, 'max_difference'])
-	current_fig.set(title = 'Maximum Differences Histogram')
-	current_fig.figure.savefig(loc + 'opt_results_max_differences.png', bbox_inches='tight')
-	plt.clf()
-
-	scatter_obj = sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'air_decrease', size = 'mean_difference')
-	## LABELS - BBOX_INCHES keyword saves the labels
-	scatter_obj.set(xlabel = 'Temperature Decrease', ylabel = 'Air Supply Decrease', title = 'Air Supply vs. Temperature Decrease')
-	scatter_obj.figure.savefig(loc + 'opt_results_scatter_mean.png', bbox_inches='tight')
-	plt.clf()
-
-	# TO DO
+	# trying to get more info about low occupancy hours
 
 	return "Visualize complete."

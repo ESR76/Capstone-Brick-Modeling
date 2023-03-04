@@ -1,6 +1,13 @@
 import pandas as pd
 import os
 
+# tried to use pandas tz_convert and localize functions for changing hour but ran into issues
+def change_hour(val):
+	reduced = val - 8
+	if reduced < 0:
+		reduced = 24 - reduced
+	return reduced
+
 def train_test_cleaning(data, **params):
 	split_date = params['split_date']
 
@@ -27,6 +34,7 @@ def train_test_cleaning(data, **params):
 	missingtimes_df = pd.DataFrame(index = pd.date_range(min_ts, split_date, freq=params['time_floor_val']))
 
 	complete_times_train = missingtimes_df.merge(medians, left_index = True, right_index = True, how = 'outer')
+
 	complete_times_train.loc[:, 'hour'] = complete_times_train.index.hour
 	locs = complete_times_train[params['energy_col']].isna()
 
@@ -86,7 +94,7 @@ def clean_raw(cwd, data, is_train, **params):
 		print("\nno run -> data call for test because test data is already present")
 		print("in run -> features for test")
 
-	# temp time strips UTC addition and then converts to timestamp
+	# temp time strips UTC addition and then converts to timestamp - NOT IDEAL WAY TO HANDLE THIS IN PANDAS
 	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].str[0:-6].apply(lambda x: pd.Timestamp(x))
 
 	# floor data timestamps to the nearest hour here and get hours
