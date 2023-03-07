@@ -50,28 +50,41 @@ def optimize_model(cwd, model, is_train, **params):
 	dfs = []
 	results = []
 
+	# OPTIMIZE TO DO - some kind of analysis of prop boundary via hours
+
 	Xtest = Xtrain.copy(deep = True)
 
-	# does it make sense to create this as a loop like this
+	# Makes 3 versions, one for high occupancy minimum, one for low occupancy min, one for no occupancy (0)
 	for a in opt_options[columns[1]]:
 		for t in opt_options[columns[0]]:
-			# occupied
+			# occupied - low limit
 			Xtest.loc[:, columns[0]] = Xtrain.loc[:, columns[0]].apply(reduce_setpoint, args = (t, ))
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, params['optimization_room_min'], ))
 			
-			prop_limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_min'], )) / Xtrain.shape[0]
+			prop_limited = sum(Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_min'], ))) / Xtrain.shape[0]
 
-			#print(Xtest.head(2))
 			y_pred = clf.predict(Xtest)
 			pred_series = pd.Series(y_pred).rename("preds")
 			differences = Ytrain - pred_series
 
 			dfs.append(Xtest)
-			results.append((t, a, "occupied", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
+			results.append((t, a, "occupied_low", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
+
+
+			# occupied - high limit
+			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, params['optimization_room_avgmin'], ))
+			prop_limited = sum(Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_avgmin'], ))) / Xtrain.shape[0]
+			y_pred = clf.predict(Xtest)
+			pred_series = pd.Series(y_pred).rename("preds")
+			differences = Ytrain - pred_series
+
+			dfs.append(Xtest)
+			results.append((t, a, "occupied_high", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
+
 
 			# unoccupied
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, ))
-			prop_limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, )) / Xtrain.shape[0]
+			prop_limited = sum(Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, ))) / Xtrain.shape[0]
 			
 			y_pred = clf.predict(Xtest)
 			pred_series = pd.Series(y_pred).rename("preds")
@@ -80,7 +93,7 @@ def optimize_model(cwd, model, is_train, **params):
 			dfs.append(Xtest)
 			results.append((t, a, "unoccupied", prop_limited, differences.mean(), differences.median(), differences.min(), differences.max()))
 
-	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX/VARIABLES
+	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX/VARIABLES?
 
 	pred_df = pd.DataFrame(results, columns = ['temp_decrease', 'air_decrease', 'air_limited', 'prop_boundary', 'mean_difference', 'median_difference', 'min_difference', 'max_difference'])
 

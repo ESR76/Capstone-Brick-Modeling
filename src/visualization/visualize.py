@@ -41,12 +41,11 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	#plot_df.loc[:, 'year'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.year)
 	#plot_df.loc[:, 'month/year'] = plot_df.apply(lambda x: str(x['month']) + '/' + str(x['year']), axis = 1)
-
-	# LOOK INTO THIS FOR LABELS: https://stackoverflow.com/questions/62630875/how-to-change-the-plot-order-of-the-categorical-x-axis
-
 	#mo_year_groups = plot_df.groupby('month/year')['energy'].mean()
+
+
 	month_groups = plot_df.groupby('month')['energy'].mean()
-	weekday_groups = plot_df.groupby('weekday')['energy'].mean()#.replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
+	weekday_groups = plot_df.groupby('weekday')['energy'].mean()
 	hour_groups = plot_df.groupby('hour')['energy'].mean()
 
 	fig, axes = plt.subplots(nrows=3, ncols=1, dpi=300, figsize=(18,6))
@@ -73,18 +72,24 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	#print(plot_df.head(5))
 	vis_columns = params['viz_columns']
+	vis_rename = params['viz_rename']
+	vis_dict = dict(zip(vis_columns, vis_rename))
 
 	fig, axes = plt.subplots(nrows=2, ncols=3, dpi=300, figsize=(18,6))
 	for i, ax in enumerate(axes.flatten()):
-	    data = plot_df.loc[:, [vis_columns[0], vis_columns[i + 1]]]
-	    ax.plot(data.loc[:, vis_columns[0]], data.loc[:, vis_columns[i + 1]], color='red')
-	    # Decorations
-	    ax.set_title(vis_columns[i + 1])
-	    ax.xaxis.set_ticks_position('none')
-	    ax.yaxis.set_ticks_position('none')
-	    ax.spines["top"].set_alpha(0)
-	    ax.tick_params(labelsize=6)
-	    ax.tick_params(axis='x', labelrotation = 45)
+		data = plot_df.loc[:, [vis_columns[0], vis_columns[i + 1]]]
+		ax.plot(data.loc[:, vis_columns[0]], data.loc[:, vis_columns[i + 1]], color='red')
+		# Decorations
+		title = vis_dict[vis_columns[i + 1]]
+		if len(title) == 0:
+			ax.set_title(vis_columns[i + 1])
+		else:
+			ax.set_title(title)
+		ax.xaxis.set_ticks_position('none')
+		ax.yaxis.set_ticks_position('none')
+		ax.spines["top"].set_alpha(0)
+		ax.tick_params(labelsize=6)
+		ax.tick_params(axis='x', labelrotation = 45)
 
 	plt.tight_layout()
 	plt.savefig(loc + 'data_values_pre_imputation.png')
@@ -112,32 +117,32 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.clf()
 
 
-	fig, axes = plt.subplots(nrows=2, ncols=4, dpi=300, figsize=(18,6))
+	fig, axes = plt.subplots(nrows=2, ncols=4, dpi=300, figsize=(18,12))
 	# air
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'median_difference', hue = 'air_limited', ax = axes[0, 0], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'median_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 0], alpha = 0.7)
 	axes[0, 0].set(xlabel = 'Air Supply Decrease', ylabel = 'Median Difference', title = 'Median Difference with Air Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'mean_difference', hue = 'air_limited', ax = axes[0, 1], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'mean_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 1], alpha = 0.7)
 	axes[0, 1].set(xlabel = 'Air Supply Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Air Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'min_difference', hue = 'air_limited', ax = axes[0, 2], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'min_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 2], alpha = 0.7)
 	axes[0, 2].set(xlabel = 'Air Supply Decrease', ylabel = 'Min Difference', title = 'Min Difference with Air Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'max_difference', hue = 'air_limited', ax = axes[0, 3], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'max_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 3], alpha = 0.7)
 	axes[0, 3].set(xlabel = 'Air Supply Decrease', ylabel = 'Max Difference', title = 'Max Difference with Air Decrease')
 
 
 	# temp
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'median_difference', hue = 'air_limited', ax = axes[1, 0], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'median_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 0], alpha = 0.7)
 	axes[1, 0].set(xlabel = 'Temp Decrease', ylabel = 'Median Difference', title = 'Median Difference with Temp Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'mean_difference', hue = 'air_limited', ax = axes[1, 1], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'mean_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 1], alpha = 0.7)
 	axes[1, 1].set(xlabel = 'Temp Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Temp Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'min_difference', hue = 'air_limited', ax = axes[1, 2], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'min_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 2], alpha = 0.7)
 	axes[1, 2].set(xlabel = 'Temp Decrease', ylabel = 'Min Difference', title = 'Min Difference with Temp Decrease')
 
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'max_difference', hue = 'air_limited', ax = axes[1, 3], alpha = 0.7)
+	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'max_difference', hue = 'air_limited',size = 'prop_boundary',  ax = axes[1, 3], alpha = 0.7)
 	axes[1, 3].set(xlabel = 'Temp Decrease', ylabel = 'Max Difference', title = 'Max Difference with Temp Decrease')
 
 	fig.suptitle('Optimization Results by Setpoint Decreasing')
@@ -145,6 +150,6 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.savefig(loc + 'opt_results_scatter.png', box_inches='tight')
 	plt.clf()
 
-	# trying to get more info about low occupancy hours
+	# trying to get more info about low occupancy hours - examine relationships with prop boundary and hours TO DO
 
 	return "Visualize complete."
