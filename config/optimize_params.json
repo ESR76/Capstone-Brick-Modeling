@@ -7,5 +7,6 @@
   "optimize_results": "optimization_results.csv",
   "optimization_room_min": 45,
   "optimization_room_avgmin": 100,
-  "optimization_room_max": 1000
+  "optimization_room_max": 1000,
+  "optimization_group_col": "hour"
 }
