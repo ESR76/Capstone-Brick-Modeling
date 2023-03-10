@@ -53,12 +53,9 @@ def time_features(cwd, data, is_train, **params):
 		print("\nin run -> features pt. 2 for test data")
 
 	files = os.listdir(cwd + direc)
-	if final_name in files:
+	if final_name in files and is_train:
 		print("Feature-generated data already found, skipping regeneration.")
 		return pd.read_csv(cwd + direc + final_name)
-
-	# creating time column for standard cleaning pipeline
-	data.loc[:, params['time_col']] = data.loc[:, params['time_col']].apply(lambda x: pd.Timestamp(x))
 
 	# creates cost column using energy col
 	data = cost_mod_energy(data, **params)

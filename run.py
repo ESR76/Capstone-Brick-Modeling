@@ -15,6 +15,8 @@ from features.build_features import *
 from features.clean_features import *
 
 from models.tree_model import *
+# for testing
+from models.linear_model import *
 
 from optimization.optimize import *
 
@@ -147,6 +149,20 @@ def model(cwd, ds):
 
     return generate_model(cwd, ds, True, **model_cfg)
 
+# FOR TESTING
+def lin_model(cwd, ds):
+    print("\nin run -> LINEAR model")
+    print("\nThis is being used for internal testing only, it runs through similar steps to model")
+
+    with open('config/model_params.json') as fh:
+        model_cfg = json.load(fh)
+
+    if ds.empty:
+        print('features was not in call to run.py file - will pull data from data/temp assuming features has been run before. Will raise error if features file never generated.')
+        ds = pd.read_csv(cwd + model_cfg['temp_output'] + model_cfg['pre_model_name'])
+
+    return generate_model_lin(cwd, ds, True, **model_cfg)
+
 def optimize(cwd, mdl):
     # pulls optimize params
     with open('config/optimize_params.json') as fh:
@@ -205,7 +221,12 @@ def main(targets):
         cleaned_dataset = features_1(cwd, early_dataset)
         finished_dataset = features_2(cwd, cleaned_dataset)
         order.append('features')
-        
+    
+    # FOR TESTING - DOES NOT CONTRIBUTE TO PIPELINE
+    if 'lin' in targets:
+        lin_model(cwd, finished_dataset)
+        order.append('linear model')
+
     mdl = None
     if 'model' in targets:
         mdl = model(cwd, finished_dataset)
@@ -219,6 +240,8 @@ def main(targets):
     if 'visualize' in targets:
         print(visualize(cwd, opt_results))
         order.append('visualize')
+
+
 
     return order
 

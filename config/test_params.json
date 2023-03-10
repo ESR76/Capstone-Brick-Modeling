@@ -19,6 +19,11 @@
   "optimize_versions_folder": "/test/testdata/output_optsets/",
   "optimize_options": {"Common Setpoint": [0, 1.5, 3, 5], "Actual Sup Flow SP": [0, 10, 20, 40, 100]},
   "optimize_results": "test_data_optimization_results.csv",
+  "optimization_room_min": 45,
+  "optimization_room_avgmin": 100,
+  "optimization_room_max": 1000,
+  "optimization_group_col": "hour",
   "save_viz": "/test/testviz/",
-  "viz_columns": ["time", "Common Setpoint", "Actual Sup Flow SP","Zone Temperature","Actual Supply Flow","Outside Air Temp","Humidity"]
+  "viz_columns": ["time", "Common Setpoint", "Actual Sup Flow SP","Zone Temperature","Actual Supply Flow","Outside Air Temp","Humidity"],
+  "viz_rename": ["", "Temp SP", "Airflow SP", "Zone Temp", "Actual Airflow", "Outside Temp", ""]
 }
