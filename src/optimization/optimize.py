@@ -158,7 +158,7 @@ def optimize_model(cwd, model, is_train, **params):
 		pred_df.to_csv(cwd + params['final_output'] + final_name, index = False)
 		final_groups.to_csv(cwd + params['final_output'] + 'total_' + final_name, index = False)
 	else:
-		pred_df.to_csv(cwd + params['test_directory'] + final_name + '_test', index = False)
+		pred_df.to_csv(cwd + params['test_directory'] + final_name, index = False)
 		final_groups.to_csv(cwd + params['test_directory'] + 'total_' + final_name, index = False)
 	
 	return pred_df

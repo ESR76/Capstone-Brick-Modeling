@@ -12,11 +12,11 @@ def visualize_hour(x):
 	return replace
 
 def visualize_results(cwd, opt_results, is_train, **params):
-	loc = cwd + params['save_viz']
+	save_loc = cwd + params['save_viz']
 	direc = ""
 
-	if not os.path.isdir(loc):
-		os.mkdir(loc)
+	if not os.path.isdir(save_loc):
+		os.mkdir(save_loc)
 
 	if is_train:
 		direc = params['temp_output']
@@ -26,6 +26,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 
 	### VISUALIZATION OF TRENDS BY UNIT OF TIME
+	print('Visualizing to folder: {}'.format(save_loc))
 	plot_df = pd.read_csv(cwd + direc + params['orig_name'])
 
 	plot_df.loc[:, params['time_col']] = plot_df.loc[:, params['time_col']].transform(pd.Timestamp)
@@ -59,7 +60,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	fig.suptitle('Energy Means by Different Time Groups')
 	plt.tight_layout()
-	plt.savefig(loc + 'energy_time_means.png')
+	plt.savefig(save_loc + 'energy_time_means.png')
 	plt.clf()
 
 	### VISUALIZATION of DATA MEDIANS ###
@@ -91,7 +92,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 		ax.tick_params(axis='x', labelrotation = 45)
 
 	plt.tight_layout()
-	plt.savefig(loc + 'data_values_pre_imputation.png')
+	plt.savefig(save_loc + 'data_values_pre_imputation.png')
 	plt.clf()
 
 	## OTHER VISUALIZATIONS ##
@@ -114,7 +115,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	fig.suptitle('Histograms of Differences')
 	plt.tight_layout()
-	plt.savefig(loc + 'opt_results_differences.png', bbox_inches='tight')
+	plt.savefig(save_loc + 'opt_results_differences.png', bbox_inches='tight')
 	plt.clf()
 
 	### VISUALIZATION of MEDIAN RESULTS ###
@@ -122,9 +123,11 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	row = 0
 	col = 0
 	for i in range(0, 24):
-		subset = opt_results.loc[opt_results['hour'] == i, :]
-		sns.histplot(data = subset, x = 'median', ax = axes[row, col])
-		axes[row, col].set(title = 'Histogram of Median Differences Hour {}'.format(i))
+		subset = opt_results.loc[opt_results['hour'] == i, ['median']].reset_index(drop = True)
+
+		if not subset.empty:
+			sns.histplot(data = subset, x = 'median', ax = axes[row, col])
+			axes[row, col].set(title = 'Histogram of Median Differences Hour {}'.format(i))
 
 		col = col + 1
 		if col == 6:
@@ -133,7 +136,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	fig.suptitle('Histograms of Differences')
 	plt.tight_layout()
-	plt.savefig(loc + 'opt_results_histplots_differences.png', bbox_inches='tight')
+	plt.savefig(save_loc + 'opt_results_histplots_differences.png', bbox_inches='tight')
 	plt.clf()
 
 	### VISUALIZATION of MEDIAN RESULTS ###
@@ -152,7 +155,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	fig.suptitle('Histograms of Differences')
 	plt.tight_layout()
-	plt.savefig(loc + 'opt_results_boxplots_differences_hour.png', bbox_inches='tight')
+	plt.savefig(save_loc + 'opt_results_boxplots_differences_hour.png', bbox_inches='tight')
 	plt.clf()
 
 	# trying to get more info about low occupancy hours - examine relationships with prop boundary and hours TO DO
@@ -160,14 +163,14 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', s = 400, alpha = 0.5)
 	fig = scatter_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
-	plt.savefig(loc + 'opt_results_scatter_median.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.savefig(save_loc + 'opt_results_scatter_median.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	swarm_fig = sns.swarmplot(data=opt_results, x="hour", y="median", hue="occupancy", s = 20)
 	fig = swarm_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
 	plt.grid()
-	plt.savefig(loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
+	plt.savefig(save_loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,18))
@@ -185,13 +188,13 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	fig.suptitle('Boxplots of Differences by Occupancy')
 	plt.tight_layout()
-	plt.savefig(loc + 'opt_results_box_groups.png', bbox_inches='tight')
+	plt.savefig(save_loc + 'opt_results_box_groups.png', bbox_inches='tight')
 	plt.clf()
 
 	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', size = 'air_set', sizes = (20, 200), alpha = 0.5)
 	fig = scatter_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
-	plt.savefig(loc + 'opt_results_scatter_air.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.savefig(save_loc + 'opt_results_scatter_air.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	heat_df = pd.pivot_table(opt_results, values='max', index=['hour'],
@@ -200,18 +203,18 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	heat_fig = sns.heatmap(data = heat_df, annot = True)
 	heat_fig.set(xlabel = 'Air Setpoint Reduction', ylabel = 'Hour', title = 'Maximum Reduction of Cost by Air Setpoint Reduction and Hour')
 	fig = scatter_fig.get_figure()
-	plt.savefig(loc + 'opt_results_heat.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.savefig(save_loc + 'opt_results_heat.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	if is_train:
 		direc = params['final_output']
-	total_results = pd.read_csv(cwd + direc + 'total_optimization_results.csv')
+	total_results = pd.read_csv(cwd + direc + 'total_' + params['optimize_results'])
 
 	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
 	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
 	fig = line_fig.get_figure()
 	fig.suptitle('Proportion Limited by Occupancy Limits by Hour')
-	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
+	plt.savefig(save_loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
 	plt.clf()
 
-	return "Visualize complete."
+	return "Visualization complete. Thanks for running the pipeline!"
