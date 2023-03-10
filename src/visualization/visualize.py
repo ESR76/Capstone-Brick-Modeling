@@ -97,18 +97,20 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	## OTHER VISUALIZATIONS ##
 
+	opt_results.loc[:, 'hour'] = opt_results.loc[:, 'hour'].transform(visualize_hour)
+
 	### VISUALIZATION of OPTIMIZATION RESULTS ###
 	fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,6))
-	sns.histplot(opt_results.loc[:, 'mean_difference'], ax = axes[0, 0])
+	sns.histplot(opt_results.loc[:, 'mean'], ax = axes[0, 0])
 	axes[0, 0].set(title = 'Mean Differences Histogram')
 
-	sns.histplot(opt_results.loc[:, 'median_difference'], ax = axes[0, 1])
+	sns.histplot(opt_results.loc[:, 'median'], ax = axes[0, 1])
 	axes[0, 1].set(title = 'Median Differences Histogram')
 
-	sns.histplot(opt_results.loc[:, 'min_difference'], ax = axes[1, 0])
+	sns.histplot(opt_results.loc[:, 'min'], ax = axes[1, 0])
 	axes[1, 0].set(title = 'Min Differences Histogram')
 
-	sns.histplot(opt_results.loc[:, 'max_difference'], ax = axes[1, 1])
+	sns.histplot(opt_results.loc[:, 'max'], ax = axes[1, 1])
 	axes[1, 1].set(title = 'Max Differences Histogram')
 
 	fig.suptitle('Histograms of Differences')
@@ -116,40 +118,68 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.savefig(loc + 'opt_results_differences.png', bbox_inches='tight')
 	plt.clf()
 
+	### VISUALIZATION of MEDIAN RESULTS ###
+	fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
+	row = 0
+	col = 0
+	for i in range(0, 24):
+		subset = opt_results.loc[opt_results['hour'] == i, :]
+		sns.histplot(data = subset, x = 'median', ax = axes[row, col])
+		axes[row, col].set(title = 'Histogram of Median Differences Hour {}'.format(i))
 
-	fig, axes = plt.subplots(nrows=2, ncols=4, dpi=300, figsize=(18,12))
-	# air
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'median_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 0], alpha = 0.7)
-	axes[0, 0].set(xlabel = 'Air Supply Decrease', ylabel = 'Median Difference', title = 'Median Difference with Air Decrease')
+		col = col + 1
+		if col == 6:
+			row += 1
+			col = 0
 
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'mean_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 1], alpha = 0.7)
-	axes[0, 1].set(xlabel = 'Air Supply Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Air Decrease')
-
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'min_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 2], alpha = 0.7)
-	axes[0, 2].set(xlabel = 'Air Supply Decrease', ylabel = 'Min Difference', title = 'Min Difference with Air Decrease')
-
-	sns.scatterplot(data = opt_results, x = 'air_decrease', y = 'max_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[0, 3], alpha = 0.7)
-	axes[0, 3].set(xlabel = 'Air Supply Decrease', ylabel = 'Max Difference', title = 'Max Difference with Air Decrease')
-
-
-	# temp
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'median_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 0], alpha = 0.7)
-	axes[1, 0].set(xlabel = 'Temp Decrease', ylabel = 'Median Difference', title = 'Median Difference with Temp Decrease')
-
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'mean_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 1], alpha = 0.7)
-	axes[1, 1].set(xlabel = 'Temp Decrease', ylabel = 'Mean Difference', title = 'Mean Difference with Temp Decrease')
-
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'min_difference', hue = 'air_limited', size = 'prop_boundary', ax = axes[1, 2], alpha = 0.7)
-	axes[1, 2].set(xlabel = 'Temp Decrease', ylabel = 'Min Difference', title = 'Min Difference with Temp Decrease')
-
-	sns.scatterplot(data = opt_results, x = 'temp_decrease', y = 'max_difference', hue = 'air_limited',size = 'prop_boundary',  ax = axes[1, 3], alpha = 0.7)
-	axes[1, 3].set(xlabel = 'Temp Decrease', ylabel = 'Max Difference', title = 'Max Difference with Temp Decrease')
-
-	fig.suptitle('Optimization Results by Setpoint Decreasing')
+	fig.suptitle('Histograms of Differences')
 	plt.tight_layout()
-	plt.savefig(loc + 'opt_results_scatter.png', box_inches='tight')
+	plt.savefig(loc + 'opt_results_histplots_differences.png', bbox_inches='tight')
+	plt.clf()
+
+	### VISUALIZATION of MEDIAN RESULTS ###
+	fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
+	row = 0
+	col = 0
+	for i in range(0, 24):
+		subset = opt_results.loc[opt_results['hour'] == i, :]
+		sns.boxplot(data = subset, x = 'median', ax = axes[row, col])
+		axes[row, col].set(title = 'Boxplot of Median Differences Hour {}'.format(i))
+
+		col = col + 1
+		if col == 6:
+			row += 1
+			col = 0
+
+	fig.suptitle('Histograms of Differences')
+	plt.tight_layout()
+	plt.savefig(loc + 'opt_results_boxplots_differences_hour.png', bbox_inches='tight')
 	plt.clf()
 
 	# trying to get more info about low occupancy hours - examine relationships with prop boundary and hours TO DO
+
+	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', s = 400, alpha = 0.5)
+	fig = scatter_fig.get_figure()
+	plt.legend(loc="upper right", frameon=True, fontsize=30)
+	plt.savefig(loc + 'opt_results_scatter_median.png', bbox_inches='tight')
+	plt.clf()
+
+	swarm_fig = sns.swarmplot(data=opt_results, x="hour", y="median", hue="occupancy", s = 20)
+	fig = swarm_fig.get_figure()
+	plt.legend(loc="upper right", frameon=True, fontsize=30)
+	plt.grid()
+	plt.savefig(loc + 'opt_results_swarm_median.png', bbox_inches='tight')
+	plt.clf()
+
+	if is_train:
+		direc = params['final_output']
+	total_results = pd.read_csv(cwd + direc + 'total_optimization_results.csv')
+
+	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
+	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
+	fig = line_fig.get_figure()
+	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight')
+	plt.clf()
+
 
 	return "Visualize complete."
