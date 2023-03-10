@@ -2,6 +2,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+import numpy as np
 
 # should've changed the data but this is next best option - changing for visual only
 def visualize_hour(x):
@@ -43,20 +44,18 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	#plot_df.loc[:, 'month/year'] = plot_df.apply(lambda x: str(x['month']) + '/' + str(x['year']), axis = 1)
 	#mo_year_groups = plot_df.groupby('month/year')['energy'].mean()
 
-
 	month_groups = plot_df.groupby('month')['energy'].mean()
 	weekday_groups = plot_df.groupby('weekday')['energy'].mean()
 	hour_groups = plot_df.groupby('hour')['energy'].mean()
 
-	fig, axes = plt.subplots(nrows=3, ncols=1, dpi=300, figsize=(18,6))
+	fig, axes = plt.subplots(nrows=1, ncols=2, dpi=300, figsize=(12,6))
 
 	sns.lineplot(data = hour_groups.reset_index(), x = 'hour', y = 'energy', ax = axes[0])
 	axes[0].set_title('Hour Means for Energy')
 	sns.lineplot(data = weekday_groups.reset_index(), x = 'weekday', y = 'energy', ax = axes[1], sort = False)
 	axes[1].set_title('Weekday Means for Energy')
-	sns.lineplot(data = month_groups.reset_index(), x = 'month', y = 'energy', ax = axes[2], sort = False)
-	axes[2].set_title('Month Means for Energy')
-
+	#sns.lineplot(data = month_groups.reset_index(), x = 'month', y = 'energy', ax = axes[2], sort = False)
+	#axes[2].set_title('Month Means for Energy')
 
 	fig.suptitle('Energy Means by Different Time Groups')
 	plt.tight_layout()
@@ -171,6 +170,39 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.savefig(loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
 	plt.clf()
 
+	fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,18))
+	sns.boxplot(data= opt_results, x="median", y="occupancy", ax = axes[0, 0])
+	axes[0, 0].set(title = 'Median Differences Boxplot by Occupancy')
+
+	sns.boxplot(data=opt_results, x="mean", y="occupancy", ax = axes[0, 1])
+	axes[0, 1].set(title = 'Mean Differences Boxplot by Occupancy')
+
+	sns.boxplot(data=opt_results, x="min", y="occupancy", ax = axes[1, 0])
+	axes[1, 0].set(title = 'Minimum Differences Boxplot by Occupancy')
+
+	sns.boxplot(data=opt_results, x="max", y="occupancy", ax = axes[1, 1])
+	axes[1, 1].set(title = 'Max Differences Boxplot by Occupancy')
+
+	fig.suptitle('Boxplots of Differences by Occupancy')
+	plt.tight_layout()
+	plt.savefig(loc + 'opt_results_box_groups.png', bbox_inches='tight')
+	plt.clf()
+
+	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', size = 'air_set', sizes = (20, 200), alpha = 0.5)
+	fig = scatter_fig.get_figure()
+	plt.legend(loc="upper right", frameon=True, fontsize=30)
+	plt.savefig(loc + 'opt_results_scatter_air.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.clf()
+
+	heat_df = pd.pivot_table(opt_results, values='max', index=['hour'],
+                    columns=['air_set'], aggfunc=max)
+
+	heat_fig = sns.heatmap(data = heat_df, annot = True)
+	heat_fig.set(xlabel = 'Air Setpoint Reduction', ylabel = 'Hour', title = 'Maximum Reduction of Cost by Air Setpoint Reduction and Hour')
+	fig = scatter_fig.get_figure()
+	plt.savefig(loc + 'opt_results_heat.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.clf()
+
 	if is_train:
 		direc = params['final_output']
 	total_results = pd.read_csv(cwd + direc + 'total_optimization_results.csv')
@@ -178,8 +210,8 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
 	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
 	fig = line_fig.get_figure()
-	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), lw = 10)
+	fig.suptitle('Proportion Limited by Occupancy Limits by Hour')
+	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
 	plt.clf()
-
 
 	return "Visualize complete."
