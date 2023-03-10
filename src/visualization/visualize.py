@@ -161,14 +161,14 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', s = 400, alpha = 0.5)
 	fig = scatter_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
-	plt.savefig(loc + 'opt_results_scatter_median.png', bbox_inches='tight')
+	plt.savefig(loc + 'opt_results_scatter_median.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	swarm_fig = sns.swarmplot(data=opt_results, x="hour", y="median", hue="occupancy", s = 20)
 	fig = swarm_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
 	plt.grid()
-	plt.savefig(loc + 'opt_results_swarm_median.png', bbox_inches='tight')
+	plt.savefig(loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
 	plt.clf()
 
 	if is_train:
@@ -178,7 +178,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
 	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
 	fig = line_fig.get_figure()
-	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight')
+	plt.savefig(loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), lw = 10)
 	plt.clf()
 
 
