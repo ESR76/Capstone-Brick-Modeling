@@ -11,15 +11,33 @@ def visualize_hour(x):
 		replace = 24 + replace
 	return replace
 
+def prop_zeros(x):
+	prop = 0
+
+	if len(x) > 0:
+		prop = (sum(x == 0) / len(x))
+
+	return prop
+
 def visualize_results(cwd, opt_results, is_train, **params):
 	save_loc = cwd + params['save_viz']
 	direc = ""
+	files_created = []
+	final_name = params['is_visualized']
 
 	if not os.path.isdir(save_loc):
 		os.mkdir(save_loc)
 
 	if is_train:
 		direc = params['temp_output']
+
+		files = os.listdir(cwd + params['final_output'])
+
+		if final_name in files:
+			print('Visualize files already found according to the visualize_complete text file.')
+			print('To regenerate - please run "python3 run.py clean" before calling visualize again.')
+				
+			return 'Visualizations not printed, please check your visualizations folder.'
 	else:
 		print("\nin run -> visualize for test data")
 		direc = params['test_directory']
@@ -62,6 +80,32 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'energy_time_means.png')
 	plt.clf()
+	files_created.append('energy_time_means.png')
+
+
+	# Visualization of 0 proportions by hour
+	hour_0s = plot_df.groupby('hour')['energy'].agg(prop_zeros).reset_index()
+
+	if is_train:
+		bar_0s = sns.barplot(data=hour_0s, x="hour", y="energy", ax = axes[0])
+		bar_0s.set(xlabel = 'Hour', ylabel = 'Proportion of Zero Values', title = 'Proportion of Zero Values by Hour')
+		fig = bar_0s.get_figure()
+		plt.savefig(save_loc + 'opt_results_bar_0s.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+		plt.clf()
+		files_created.append('opt_results_bar_0s.png')
+
+	else:
+		fig, axes = plt.subplots(figsize=(12,12))
+		bar_0s = sns.barplot(data=hour_0s, x="hour", y="energy", ax = axes)
+		bar_0s.set(xlabel = 'Hour', ylabel = 'Proportion of Zero Values', title = 'Proportion of Zero Values by Hour')
+		axes2 = axes.twinx()
+		line_0s = sns.lineplot(data=hour_0s, x=axes.get_xticks(), y="energy", ax = axes2)
+		line_0s.set(xlabel = 'Hour', ylabel = 'Proportion of Zero Values', title = 'Proportion of Zero Values by Hour')
+
+		plt.savefig(save_loc + 'opt_results_bar_0s.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+		plt.clf()
+		files_created.append('opt_results_bar_0s.png')
+		print('Test data for opt_results_bar_0s.png has no 0 data, so a line was super imposed on top to show that the proportions were 0.')
 
 	### VISUALIZATION of DATA MEDIANS ###
 	plot_df = pd.read_csv(cwd + direc + params['out_name'])
@@ -94,6 +138,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'data_values_pre_imputation.png')
 	plt.clf()
+	files_created.append('data_values_pre_imputation.png')
 
 	## OTHER VISUALIZATIONS ##
 
@@ -117,6 +162,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'opt_results_differences.png', bbox_inches='tight')
 	plt.clf()
+	files_created.append('opt_results_differences.png')
 
 	### VISUALIZATION of MEDIAN RESULTS ###
 	fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
@@ -138,6 +184,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'opt_results_histplots_differences.png', bbox_inches='tight')
 	plt.clf()
+	files_created.append('opt_results_histplots_differences.png')
 
 	### VISUALIZATION of MEDIAN RESULTS ###
 	fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
@@ -157,6 +204,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'opt_results_boxplots_differences_hour.png', bbox_inches='tight')
 	plt.clf()
+	files_created.append('opt_results_boxplots_differences_hour.png')
 
 	# trying to get more info about low occupancy hours - examine relationships with prop boundary and hours TO DO
 
@@ -165,6 +213,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
 	plt.savefig(save_loc + 'opt_results_scatter_median.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
+	files_created.append('opt_results_scatter_median.png')
 
 	swarm_fig = sns.swarmplot(data=opt_results, x="hour", y="median", hue="occupancy", s = 20)
 	fig = swarm_fig.get_figure()
@@ -172,6 +221,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.grid()
 	plt.savefig(save_loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
 	plt.clf()
+	files_created.append('opt_results_swarm_median.png')
 
 	fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,18))
 	sns.boxplot(data= opt_results, x="median", y="occupancy", ax = axes[0, 0])
@@ -190,12 +240,14 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.tight_layout()
 	plt.savefig(save_loc + 'opt_results_box_groups.png', bbox_inches='tight')
 	plt.clf()
+	files_created.append('opt_results_box_groups.png')
 
 	scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', size = 'air_set', sizes = (20, 200), alpha = 0.5)
 	fig = scatter_fig.get_figure()
 	plt.legend(loc="upper right", frameon=True, fontsize=30)
 	plt.savefig(save_loc + 'opt_results_scatter_air.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
+	files_created.append('opt_results_scatter_air.png')
 
 	heat_df = pd.pivot_table(opt_results, values='max', index=['hour'],
                     columns=['air_set'], aggfunc=max)
@@ -203,8 +255,9 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	heat_fig = sns.heatmap(data = heat_df, annot = True)
 	heat_fig.set(xlabel = 'Air Setpoint Reduction', ylabel = 'Hour', title = 'Maximum Reduction of Cost by Air Setpoint Reduction and Hour')
 	fig = scatter_fig.get_figure()
-	plt.savefig(save_loc + 'opt_results_heat.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.savefig(save_loc + 'opt_results_heat_max.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
+	files_created.append('opt_results_heat_max.png')
 
 	if is_train:
 		direc = params['final_output']
@@ -212,9 +265,21 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
 	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
+	line_fig.set(xlabel = 'Hour', ylabel = 'Proportion Limited', title = 'Proportion Limited by Occupancy Limits by Hour')
 	fig = line_fig.get_figure()
-	fig.suptitle('Proportion Limited by Occupancy Limits by Hour')
 	plt.savefig(save_loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
 	plt.clf()
+	files_created.append('opt_results_limitations_hour.png')
+
+	if is_train:
+		with open(cwd + params['final_output'] + params['is_visualized'], 'w') as f:
+			f.write('Files created:\n')
+			for file in files_created:
+				f.write(file + '\n')
+	else:
+		with open(cwd + params['test_directory'] + params['is_visualized'], 'w') as f:
+			f.write('Files created:\n')
+			for file in files_created:
+				f.write(file + '\n')
 
 	return "Visualization complete. Thanks for running the pipeline!"
