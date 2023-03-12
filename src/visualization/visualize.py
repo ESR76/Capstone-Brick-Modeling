@@ -26,7 +26,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	final_name = params['is_visualized']
 
 	# change to false when testing visuals - TO DO
-	skip_duplicates = True
+	skip_duplicates = False
 
 	if not os.path.isdir(save_loc):
 		os.mkdir(save_loc)
@@ -299,6 +299,14 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.savefig(save_loc + 'opt_results_heat_med_occ.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
 	plt.clf()
 	files_created.append('opt_results_heat_med_occ.png')
+
+
+	plot_df = opt_results.loc[(opt_results['temp_set'] == 0), ['hour', 'median', 'air_set', 'occupancy']]
+	line_fig = sns.barplot(data = plot_df, x = 'hour', y = 'median', hue = 'occupancy')
+	line_fig.set(xlabel = 'Hour', ylabel = 'Median Difference', title = 'Median Difference by Hour & Occupancy')
+	fig = line_fig.get_figure()
+	fig.savefig(save_loc + 'opt_results_line_occ.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
+	plt.clf()
 
 	if is_train:
 		direc = params['final_output']
