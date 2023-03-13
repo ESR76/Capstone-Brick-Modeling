@@ -13,7 +13,7 @@ def low_barrier(x, val, min_val = 0):
 		return True
 	return False
 
-def optimize_model(cwd, model, is_train, **params):
+def optimize_model(cwd, clf, is_train, **params):
 	final_name = params['optimize_results']
 	output_col = params['output_col']
 	data = pd.DataFrame()
@@ -34,15 +34,19 @@ def optimize_model(cwd, model, is_train, **params):
 
 				return pd.read_csv(cwd + direc + final_name)
 	else:
-		os.mkdir(cwd + params['optimize_versions_folder'])
+		os.mkdir(cwd + params['optimize_versions_folder'])	
 
 	data = pd.read_csv(cwd + direc + params['train_data'])
 
 	Xtrain = data.drop([output_col], axis = 1)
+	cols = Xtrain.columns
 	Ytrain = data.loc[:, output_col]
 
-	clf = model
-	clf = clf.fit(Xtrain, Ytrain)
+	feature_importances = clf.feature_importances_
+	with open(cwd + direc + params['optimization_weights'], 'w') as f:
+		f.write("Feature Importances:\n")
+		for i, importance in enumerate(feature_importances):
+			f.write(cols[i] + ": " + str(importance) + "\n")
 
 	opt_options = params["optimize_options"]
 	columns = list(opt_options.keys())
@@ -50,8 +54,6 @@ def optimize_model(cwd, model, is_train, **params):
 	overall = []
 	dfs = []
 	results = []
-
-	# OPTIMIZE TO DO - some kind of analysis of prop boundary via hours
 
 	Xtest = Xtrain.copy(deep = True)
 

@@ -59,15 +59,12 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plot_df.loc[:, 'weekday'] = plot_df.loc[:, 'weekday'].replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
 	plot_df.loc[:, 'weekday'] = pd.Categorical(plot_df.loc[:, 'weekday'], categories = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"], ordered = True)
 
-	plot_df.loc[:, 'month'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.month)
-	plot_df.loc[:, 'month'] = plot_df.loc[:, 'month'].replace({1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'})
-	plot_df.loc[:, 'month'] = pd.Categorical(plot_df.loc[:, 'month'], categories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ordered = True)
+	# Currently unused
+	# plot_df.loc[:, 'month'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.month)
+	# plot_df.loc[:, 'month'] = plot_df.loc[:, 'month'].replace({1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'})
+	# plot_df.loc[:, 'month'] = pd.Categorical(plot_df.loc[:, 'month'], categories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ordered = True)
 
-	#plot_df.loc[:, 'year'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.year)
-	#plot_df.loc[:, 'month/year'] = plot_df.apply(lambda x: str(x['month']) + '/' + str(x['year']), axis = 1)
-	#mo_year_groups = plot_df.groupby('month/year')['energy'].mean()
-
-	month_groups = plot_df.groupby('month')['energy'].mean()
+	# month_groups = plot_df.groupby('month')['energy'].mean()
 	weekday_groups = plot_df.groupby('weekday')['energy'].mean()
 	hour_groups = plot_df.groupby('hour')['energy'].mean()
 
@@ -77,8 +74,6 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	axes[0].set_title('Hour Means for Energy')
 	sns.lineplot(data = weekday_groups.reset_index(), x = 'weekday', y = 'energy', ax = axes[1], sort = False)
 	axes[1].set_title('Weekday Means for Energy')
-	#sns.lineplot(data = month_groups.reset_index(), x = 'month', y = 'energy', ax = axes[2], sort = False)
-	#axes[2].set_title('Month Means for Energy')
 
 	fig.suptitle('Energy Means by Different Time Groups')
 	plt.tight_layout()
@@ -141,143 +136,42 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.clf()
 	files_created.append('data_values_pre_imputation.png')
 
+	rel_fig = sns.regplot(data = plot_df, x = 'Actual Sup Flow SP' , y = 'Actual Supply Flow')
+	rel_fig.set(xlabel = 'Airflow SP', ylabel = 'Actual Airflow', title = 'Residuals of Regression on Actual Airflow vs Setpoint')
+	fig = rel_fig.get_figure()
+	plt.savefig(save_loc + 'data_airflow_reg.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
+	plt.clf()
+	files_created.append('data_airflow_reg.png')
+
 	### VISUALIZATION of OPTIMIZATION RESULTS ###
 
 	opt_results.loc[:, 'hour'] = opt_results.loc[:, 'hour'].transform(visualize_hour)
 
-	# CURRENTLY UNUSED
-	# fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,6))
-	# sns.histplot(opt_results.loc[:, 'mean'], ax = axes[0, 0])
-	# axes[0, 0].set(title = 'Mean Differences Histogram')
-
-	# sns.histplot(opt_results.loc[:, 'median'], ax = axes[0, 1])
-	# axes[0, 1].set(title = 'Median Differences Histogram')
-
-	# sns.histplot(opt_results.loc[:, 'min'], ax = axes[1, 0])
-	# axes[1, 0].set(title = 'Min Differences Histogram')
-
-	# sns.histplot(opt_results.loc[:, 'max'], ax = axes[1, 1])
-	# axes[1, 1].set(title = 'Max Differences Histogram')
-
-	# fig.suptitle('Histograms of Differences')
-	# plt.tight_layout()
-	# plt.savefig(save_loc + 'opt_results_differences.png', bbox_inches='tight')
-	# plt.clf()
-	# files_created.append('opt_results_differences.png')
-
-	### VISUALIZATION of MEDIAN RESULTS ###
-	# CURRENTLY UNUSED
-	# fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
-	# row = 0
-	# col = 0
-	# for i in range(0, 24):
-	# 	subset = opt_results.loc[opt_results['hour'] == i, ['median']].reset_index(drop = True)
-
-	# 	if not subset.empty:
-	# 		sns.histplot(data = subset, x = 'median', ax = axes[row, col])
-	# 		axes[row, col].set(title = 'Histogram of Median Differences Hour {}'.format(i))
-
-	# 	col = col + 1
-	# 	if col == 6:
-	# 		row += 1
-	# 		col = 0
-
-	# fig.suptitle('Histograms of Differences')
-	# plt.tight_layout()
-	# plt.savefig(save_loc + 'opt_results_histplots_differences.png', bbox_inches='tight')
-	# plt.clf()
-	# files_created.append('opt_results_histplots_differences.png')
 
 	# CURRENTLY UNUSED
-	# fig, axes = plt.subplots(nrows=4, ncols=6, dpi=300, figsize=(24,24))
-	# row = 0
-	# col = 0
-	# for i in range(0, 24):
-	# 	subset = opt_results.loc[opt_results['hour'] == i, :]
-	# 	sns.boxplot(data = subset, x = 'median', ax = axes[row, col])
-	# 	axes[row, col].set(title = 'Boxplot of Median Differences Hour {}'.format(i))
+	# unique_air_vals = params['optimize_options']['Actual Sup Flow SP']
+	# num_groups = len(unique_air_vals)
 
-	# 	col = col + 1
-	# 	if col == 6:
-	# 		row += 1
-	# 		col = 0
+	# for measurement in ['median', 'mean', 'min', 'max']:
+	# 	fig, axes = plt.subplots(nrows= (num_groups + 1) // 2, ncols=2, dpi=300, figsize=(18,18))
+	# 	row = 0
+	# 	col = 0
+	# 	for i in range(num_groups):
+	# 		val = unique_air_vals[i]
+	# 		subset = opt_results.loc[opt_results['air_set'] == val, :]
+	# 		sns.violinplot(data = subset, x = measurement, y = 'occupancy', ax = axes[row, col])
+	# 		axes[row, col].set(title = 'Violin Plot of {0} Differences at Air Setpoint = {1}'.format(measurement.title(), val))
 
-	# fig.suptitle('Histograms of Differences')
-	# plt.tight_layout()
-	# plt.savefig(save_loc + 'opt_results_boxplots_differences_hour.png', bbox_inches='tight')
-	# plt.clf()
-	# files_created.append('opt_results_boxplots_differences_hour.png')
+	# 		col = col + 1
+	# 		if col == 2:
+	# 			row += 1
+	# 			col = 0
 
-	# trying to get more info about low occupancy hours - examine relationships with prop boundary and hours
-
-	# CURRENTLY UNUSED
-	# scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', s = 400, alpha = 0.5)
-	# fig = scatter_fig.get_figure()
-	# plt.legend(loc="upper right", frameon=True, fontsize=30)
-	# plt.savefig(save_loc + 'opt_results_scatter_median.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-	# plt.clf()
-	# files_created.append('opt_results_scatter_median.png')
-
-	# CURRENTLY UNUSED
-	# swarm_fig = sns.swarmplot(data=opt_results, x="hour", y="median", hue="occupancy", s = 20)
-	# fig = swarm_fig.get_figure()
-	# plt.legend(loc="upper right", frameon=True, fontsize=30)
-	# plt.grid()
-	# plt.savefig(save_loc + 'opt_results_swarm_median.png', bbox_inches='tight', dpi = 300, figsize = (12,12))
-	# plt.clf()
-	# files_created.append('opt_results_swarm_median.png')
-
-	# CURRENTLY UNUSED
-	# fig, axes = plt.subplots(nrows=2, ncols=2, dpi=300, figsize=(18,18))
-	# sns.boxplot(data= opt_results, x="median", y="occupancy", ax = axes[0, 0])
-	# axes[0, 0].set(title = 'Median Differences Boxplot by Occupancy')
-
-	# sns.boxplot(data=opt_results, x="mean", y="occupancy", ax = axes[0, 1])
-	# axes[0, 1].set(title = 'Mean Differences Boxplot by Occupancy')
-
-	# sns.boxplot(data=opt_results, x="min", y="occupancy", ax = axes[1, 0])
-	# axes[1, 0].set(title = 'Minimum Differences Boxplot by Occupancy')
-
-	# sns.boxplot(data=opt_results, x="max", y="occupancy", ax = axes[1, 1])
-	# axes[1, 1].set(title = 'Max Differences Boxplot by Occupancy')
-
-	# fig.suptitle('Boxplots of Differences by Occupancy')
-	# plt.tight_layout()
-	# plt.savefig(save_loc + 'opt_results_box_groups.png', bbox_inches='tight')
-	# plt.clf()
-	# files_created.append('opt_results_box_groups.png')
-
-	unique_air_vals = params['optimize_options']['Actual Sup Flow SP']
-	num_groups = len(unique_air_vals)
-
-	for measurement in ['median', 'mean', 'min', 'max']:
-		fig, axes = plt.subplots(nrows= (num_groups + 1) // 2, ncols=2, dpi=300, figsize=(18,18))
-		row = 0
-		col = 0
-		for i in range(num_groups):
-			val = unique_air_vals[i]
-			subset = opt_results.loc[opt_results['air_set'] == val, :]
-			sns.violinplot(data = subset, x = measurement, y = 'occupancy', ax = axes[row, col])
-			axes[row, col].set(title = 'Violin Plot of {0} Differences at Air Setpoint = {1}'.format(measurement.title(), val))
-
-			col = col + 1
-			if col == 2:
-				row += 1
-				col = 0
-
-		fig.suptitle('Violin Plots of Differences')
-		plt.tight_layout()
-		plt.savefig((save_loc + 'opt_results_violin_{}.png').format(measurement), bbox_inches='tight')
-		plt.clf()
-		files_created.append('opt_results_violin_{}.png'.format(measurement))
-
-	# CURRENTLY UNUSED
-	# scatter_fig = sns.scatterplot(data = opt_results, x = 'hour', y = 'median', hue = 'occupancy', size = 'air_set', sizes = (20, 200), alpha = 0.5)
-	# fig = scatter_fig.get_figure()
-	# plt.legend(loc="upper right", frameon=True, fontsize=30)
-	# plt.savefig(save_loc + 'opt_results_scatter_air.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-	# plt.clf()
-	# files_created.append('opt_results_scatter_air.png')
+	# 	fig.suptitle('Violin Plots of Differences')
+	# 	plt.tight_layout()
+	# 	plt.savefig((save_loc + 'opt_results_violin_{}.png').format(measurement), bbox_inches='tight')
+	# 	plt.clf()
+	# 	files_created.append('opt_results_violin_{}.png'.format(measurement))
 
 	heat_df = pd.pivot_table(opt_results, values='max', index=['hour'],
                     columns=['air_set'], aggfunc=max)
@@ -289,24 +183,22 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plt.clf()
 	files_created.append('opt_results_heat_max.png')
 
-	# TO DO - FIGURE OUT IF THERE'S A BETTER WAY TO VISUALIZE DIFFERENCE/IF THERE IS DIFFERENCE
-	heat_df_2 = pd.pivot_table(opt_results, values='median', index=['occupancy'],
-                    columns=['air_set'], aggfunc=np.median)
-
-	heat_fig = sns.heatmap(data = heat_df_2, annot = True)
-	heat_fig.set(xlabel = 'Air Setpoint Reduction', ylabel = 'Occupancy', title = 'Median Reduction of Cost by Air Setpoint Reduction and Occupancy')
-	fig = heat_fig.get_figure()
-	plt.savefig(save_loc + 'opt_results_heat_med_occ.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-	plt.clf()
-	files_created.append('opt_results_heat_med_occ.png')
-
-
 	plot_df = opt_results.loc[(opt_results['temp_set'] == 0), ['hour', 'median', 'air_set', 'occupancy']]
-	line_fig = sns.barplot(data = plot_df, x = 'hour', y = 'median', hue = 'occupancy')
-	line_fig.set(xlabel = 'Hour', ylabel = 'Median Difference', title = 'Median Difference by Hour & Occupancy')
-	fig = line_fig.get_figure()
-	fig.savefig(save_loc + 'opt_results_line_occ.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
+	order = ['high', 'low', 'unoccupied']
+	bar_fig = sns.barplot(data = plot_df, x = 'hour', y = 'median', hue = 'occupancy', hue_order = order)
+	bar_fig.set(xlabel = 'Hour', ylabel = 'Median Difference', title = 'Median Difference by Hour & Occupancy')
+	fig = bar_fig.get_figure()
+	fig.savefig(save_loc + 'opt_results_bar_occ.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
 	plt.clf()
+
+	bar_fig = sns.barplot(data = plot_df, x = 'air_set', y = 'median', hue = 'occupancy', hue_order = order)
+	bar_fig.set(xlabel = 'Air Setpoint', ylabel = 'Median Difference', title = 'Median Difference by Air Setpoint & Occupancy')
+	fig = bar_fig.get_figure()
+	plt.legend(loc='upper left')
+	fig.savefig(save_loc + 'opt_results_bar_occ_2.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
+	plt.clf()
+
+	## VISUALIZATION OF PROPORTIONS LIMITED ##
 
 	if is_train:
 		direc = params['final_output']
