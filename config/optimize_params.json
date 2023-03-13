@@ -9,5 +9,5 @@
   "optimization_room_avgmin": 100,
   "optimization_room_max": 1000,
   "optimization_group_col": "hour",
-  "optimization_weights": "optimization_weights.txt"
+  "optimization_weights": "optimization_weights.csv"
 }

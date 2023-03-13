@@ -23,7 +23,7 @@
   "optimization_room_avgmin": 100,
   "optimization_room_max": 1000,
   "optimization_group_col": "hour",
-  "optimization_weights": "optimization_weights.txt",
+  "optimization_weights": "optimization_weights.csv",
   "save_viz": "/test/testviz/",
   "viz_columns": ["time", "Common Setpoint", "Actual Sup Flow SP","Zone Temperature","Actual Supply Flow","Outside Air Temp","Humidity"],
   "viz_rename": ["", "Temp SP", "Airflow SP", "Zone Temp", "Actual Airflow", "Outside Temp", ""],

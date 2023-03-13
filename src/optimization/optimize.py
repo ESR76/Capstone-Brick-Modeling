@@ -44,9 +44,9 @@ def optimize_model(cwd, clf, is_train, **params):
 
 	feature_importances = clf.feature_importances_
 	with open(cwd + direc + params['optimization_weights'], 'w') as f:
-		f.write("Feature Importances:\n")
+		f.write('"Feature","Importance"\n')
 		for i, importance in enumerate(feature_importances):
-			f.write(cols[i] + ": " + str(importance) + "\n")
+			f.write('"' + cols[i] + '", "' + str(importance) + '"\n')
 
 	opt_options = params["optimize_options"]
 	columns = list(opt_options.keys())
