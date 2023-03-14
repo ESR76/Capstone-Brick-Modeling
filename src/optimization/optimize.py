@@ -56,6 +56,10 @@ def optimize_model(cwd, clf, is_train, **params):
 	results = []
 
 	Xtest = Xtrain.copy(deep = True)
+	max_temp_change = opt_options[columns[0]][-1]
+	max_temp_vals = []
+	max_air_change = opt_options[columns[1]][-1]
+	max_air_vals = []
 
 	# Makes 3 versions, one for high occupancy minimum, one for low occupancy min, one for no occupancy (0)
 	for a in opt_options[columns[1]]:
@@ -68,6 +72,11 @@ def optimize_model(cwd, clf, is_train, **params):
 			y_pred = clf.predict(Xtest)
 			pred_series = pd.Series(y_pred).rename("preds")
 			differences = Ytrain - pred_series
+
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 
 			groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
 
@@ -98,7 +107,6 @@ def optimize_model(cwd, clf, is_train, **params):
 
 			groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
 
-
 			reduced_groups = groups.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
 			limited_sums = groups.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
 			limited_counts = groups.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
@@ -114,6 +122,10 @@ def optimize_model(cwd, clf, is_train, **params):
 			results.append(final_groups.reset_index())
 			overall.append(groups)
 
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 
 			# unoccupied
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, ))
@@ -139,8 +151,16 @@ def optimize_model(cwd, clf, is_train, **params):
 			dfs.append((groups, t, a, 'unoccupied'))
 			results.append(final_groups.reset_index())
 			overall.append(groups)
+
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 	
-	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX/VARIABLES?
+	print("*****")
+	print('Median Cost Change at Temp Reduction = {0} degrees F: {1:.4f}.'.format(max_temp_change, np.median(max_temp_vals)))
+	print('Median Cost Change at Airflow Reduction = {0} CFM: {1:.4f}.'.format(max_air_change, np.median(max_air_vals)))
+	print("*****")
 
 	pred_df = pd.concat(results)
 	total_df = pd.concat(overall)
