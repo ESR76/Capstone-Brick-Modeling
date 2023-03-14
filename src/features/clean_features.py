@@ -84,6 +84,7 @@ def clean_raw(cwd, data, is_train, **params):
 			files = os.listdir(cwd + params['temp_output'])
 
 			if final_name in files:
+				print('---ALERT---')
 				print('Timestamped data already found - will use instead of regenerating for time saving.')
 				print('If you would like to regenerate this file, please run "python3 run.py clean" in the terminal before calling features again.')
 

@@ -13,7 +13,28 @@ def low_barrier(x, val, min_val = 0):
 		return True
 	return False
 
-def optimize_model(cwd, model, is_train, **params):
+def make_groups_final(groups, **params):
+	reduced_groups = groups.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
+	limited_sums = groups.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
+	limited_counts = groups.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
+	props = limited_sums / limited_counts
+
+	final_groups = reduced_groups.merge(props, left_index = True, right_index = True)
+	
+	return final_groups
+
+def run_clf(clf, Xtest, Ytrain, limited, **params):
+	y_pred = clf.predict(Xtest)
+	pred_series = pd.Series(y_pred).rename("preds")
+	differences = Ytrain - pred_series
+
+	groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
+
+	final_groups = make_groups_final(groups, **params)
+
+	return groups, final_groups, differences
+
+def optimize_model(cwd, clf, is_train, **params):
 	final_name = params['optimize_results']
 	output_col = params['output_col']
 	data = pd.DataFrame()
@@ -29,20 +50,26 @@ def optimize_model(cwd, model, is_train, **params):
 			files = os.listdir(cwd + direc)
 
 			if final_name in files and is_train:
+				print('---ALERT---')
 				print('Optimize data already found - will skip regenerating to save time.')
 				print('To regenerate - please run "python3 run.py clean" before calling optimize again.')
 
 				return pd.read_csv(cwd + direc + final_name)
 	else:
-		os.mkdir(cwd + params['optimize_versions_folder'])
+		os.mkdir(cwd + params['optimize_versions_folder'])	
 
 	data = pd.read_csv(cwd + direc + params['train_data'])
 
 	Xtrain = data.drop([output_col], axis = 1)
+	cols = Xtrain.columns
 	Ytrain = data.loc[:, output_col]
 
-	clf = model
-	clf = clf.fit(Xtrain, Ytrain)
+	# Feature Importances - Figure 5
+	feature_importances = clf.feature_importances_
+	with open(cwd + direc + params['optimization_weights'], 'w') as f:
+		f.write('"Feature","Importance"\n')
+		for i, importance in enumerate(feature_importances):
+			f.write('"' + cols[i] + '", "' + str(importance) + '"\n')
 
 	opt_options = params["optimize_options"]
 	columns = list(opt_options.keys())
@@ -51,9 +78,11 @@ def optimize_model(cwd, model, is_train, **params):
 	dfs = []
 	results = []
 
-	# OPTIMIZE TO DO - some kind of analysis of prop boundary via hours
-
 	Xtest = Xtrain.copy(deep = True)
+	max_temp_change = opt_options[columns[0]][-1]
+	max_temp_vals = []
+	max_air_change = opt_options[columns[1]][-1]
+	max_air_vals = []
 
 	# Makes 3 versions, one for high occupancy minimum, one for low occupancy min, one for no occupancy (0)
 	for a in opt_options[columns[1]]:
@@ -63,18 +92,7 @@ def optimize_model(cwd, model, is_train, **params):
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, params['optimization_room_min'], ))
 			limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_avgmin'], ))
 
-			y_pred = clf.predict(Xtest)
-			pred_series = pd.Series(y_pred).rename("preds")
-			differences = Ytrain - pred_series
-
-			groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
-
-			reduced_groups = groups.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
-			limited_sums = groups.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
-			limited_counts = groups.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
-			props = limited_sums / limited_counts
-
-			final_groups = reduced_groups.merge(props, left_index = True, right_index = True)
+			groups, final_groups, differences = run_clf(clf, Xtest, Ytrain, limited, **params)
 
 			final_groups.loc[:, 'temp_set'] = t
 			final_groups.loc[:, 'air_set'] = a
@@ -84,25 +102,16 @@ def optimize_model(cwd, model, is_train, **params):
 			results.append(final_groups.reset_index())
 			overall.append(groups)
 
-
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 
 			# occupied - high limit
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, params['optimization_room_avgmin'], ))
 			limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, params['optimization_room_avgmin'], ))
 
-			y_pred = clf.predict(Xtest)
-			pred_series = pd.Series(y_pred).rename("preds")
-			differences = Ytrain - pred_series
-
-			groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
-
-
-			reduced_groups = groups.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
-			limited_sums = groups.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
-			limited_counts = groups.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
-			props = limited_sums / limited_counts
-
-			final_groups = reduced_groups.merge(props, left_index = True, right_index = True)
+			groups, final_groups, differences = run_clf(clf, Xtest, Ytrain, limited, **params)
 
 			final_groups.loc[:, 'temp_set'] = t
 			final_groups.loc[:, 'air_set'] = a
@@ -112,23 +121,16 @@ def optimize_model(cwd, model, is_train, **params):
 			results.append(final_groups.reset_index())
 			overall.append(groups)
 
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 
 			# unoccupied
 			Xtest.loc[:, columns[1]] = Xtrain.loc[:, columns[1]].apply(reduce_setpoint, args = (a, ))
 			limited = Xtrain.loc[:, columns[1]].apply(low_barrier, args = (a, ))
 
-			y_pred = clf.predict(Xtest)
-			pred_series = pd.Series(y_pred).rename("preds")
-			differences = Ytrain - pred_series
-
-			groups = pd.DataFrame({params['optimization_group_col']: Xtest[params['optimization_group_col']], 'differences': differences, 'was_limited': limited})
-
-			reduced_groups = groups.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
-			limited_sums = groups.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
-			limited_counts = groups.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
-			props = limited_sums / limited_counts
-
-			final_groups = reduced_groups.merge(props, left_index = True, right_index = True)
+			groups, final_groups, differences = run_clf(clf, Xtest, Ytrain, limited, **params)
 
 			final_groups.loc[:, 'temp_set'] = t
 			final_groups.loc[:, 'air_set'] = a
@@ -137,19 +139,22 @@ def optimize_model(cwd, model, is_train, **params):
 			dfs.append((groups, t, a, 'unoccupied'))
 			results.append(final_groups.reset_index())
 			overall.append(groups)
+
+			if max_temp_change == t:
+				max_temp_vals.extend(differences)
+			if max_air_change == a:
+				max_air_vals.extend(differences)
 	
-	# WOULD IT BE POSSIBLE TO USE .DESCRIBE instead of PULLING OUT MAX/VARIABLES?
+	print("*****")
+	print('Median Cost Change at Temp Reduction = {0} degrees F: {1:.4f}.'.format(max_temp_change, np.median(max_temp_vals)))
+	print('Median Cost Change at Airflow Reduction = {0} CFM: {1:.4f}.'.format(max_air_change, np.median(max_air_vals)))
+	print("*****")
 
 	pred_df = pd.concat(results)
 	total_df = pd.concat(overall)
 
-	# doing the total aggreagates for the whole
-	reduced_groups = total_df.groupby(params['optimization_group_col'])['differences'].agg(['sum', 'min', 'max', 'mean', 'median'])
-	limited_sums = total_df.groupby(params['optimization_group_col'])['was_limited'].sum().rename({'sum':'prop'})
-	limited_counts = total_df.groupby(params['optimization_group_col'])['was_limited'].count().fillna(0)
-	props = limited_sums / limited_counts
-
-	final_groups = reduced_groups.merge(props, left_index = True, right_index = True).reset_index()
+	# doing the total aggregates for the whole
+	final_groups = make_groups_final(total_df, **params).reset_index()
 
 	for df in dfs:
 		df[0].to_csv(cwd + params['optimize_versions_folder'] + 'optimize_t{0}_a{1}_{2}.csv'.format(str(df[1]).replace(".", ""), df[2], df[3]), index = False)
