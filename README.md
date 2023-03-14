@@ -7,7 +7,7 @@ We also have a public-facing [poster](https://www.canva.com/design/DAFZKQlLOLo/2
 ## Running the Code
 To test our code, please first clone the repository. 
 
-If you're concerned that you won't have the proper packages to run something in our code, use the [Docker image](https://hub.docker.com/repository/docker/esr76/capstone-brick-modeling/general) assoiated with this project - we recommend using the **"final"** tag (the "latest" tag should also work). It is designed to be run on UCSD's JupyterHub service using the base UCSD notebook as a base, for which instructions to use it can be found [here](https://github.com/ucsd-ets/datahub-example-notebook).
+If you're concerned that you won't have the proper packages to run something in our code, use the [Docker image](https://hub.docker.com/repository/docker/esr76/capstone-brick-modeling/general) associated with this project - we recommend using the **"final"** tag (the "latest" tag should also work). It is designed to be run on UCSD's JupyterHub service using the base UCSD notebook as a base, for which instructions to use it can be found [here](https://github.com/ucsd-ets/datahub-example-notebook).
 
 Another option is running "pip install -r requirements.txt".
 
