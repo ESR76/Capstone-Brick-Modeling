@@ -25,23 +25,20 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	files_created = []
 	final_name = params['is_visualized']
 
-	# change to false when testing visuals - TO DO
-	skip_duplicates = False
-
 	if not os.path.isdir(save_loc):
 		os.mkdir(save_loc)
 
 	if is_train:
 		direc = params['temp_output']
 
-		if skip_duplicates:
-			files = os.listdir(cwd + params['final_output'])
+		files = os.listdir(cwd + params['final_output'])
 
-			if final_name in files:
-				print('Visualize files already found according to the visualize_complete text file.')
-				print('To regenerate - please run "python3 run.py clean" before calling visualize again.')
-					
-				return 'Visualizations not recreated, please check your visualizations folder.'
+		if final_name in files:
+			print('---ALERT---')
+			print('Visualize files already found according to the visualize_complete text file.')
+			print('To regenerate - please run "python3 run.py clean" before calling visualize again.')
+				
+			return 'Visualizations not recreated, please check your visualizations folder.'
 	else:
 		print("\nin run -> visualize for test data")
 		direc = params['test_directory']
@@ -59,12 +56,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	plot_df.loc[:, 'weekday'] = plot_df.loc[:, 'weekday'].replace({0: 'Mon', 1: 'Tues', 2: 'Wed', 3: 'Thurs', 4: 'Fri', 5: 'Sat', 6: 'Sun'})
 	plot_df.loc[:, 'weekday'] = pd.Categorical(plot_df.loc[:, 'weekday'], categories = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"], ordered = True)
 
-	# Currently unused
-	# plot_df.loc[:, 'month'] = plot_df.loc[:, params['time_col']].transform(lambda x: x.month)
-	# plot_df.loc[:, 'month'] = plot_df.loc[:, 'month'].replace({1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'})
-	# plot_df.loc[:, 'month'] = pd.Categorical(plot_df.loc[:, 'month'], categories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ordered = True)
-
-	# month_groups = plot_df.groupby('month')['energy'].mean()
+	# Line Graph of Trends - Figure 2
 	weekday_groups = plot_df.groupby('weekday')['energy'].mean()
 	hour_groups = plot_df.groupby('hour')['energy'].mean()
 
@@ -78,10 +70,10 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	fig.suptitle('Energy Means by Different Time Groups')
 	plt.tight_layout()
 	plt.savefig(save_loc + 'energy_time_means.png')
-	plt.clf()
+	plt.close()
 	files_created.append('energy_time_means.png')
 
-	# Visualization of 0 proportions by hour
+	# Visualization of 0 Proportions by Hour - Figure 8
 	hour_0s = plot_df.groupby('hour')['energy'].agg(prop_zeros).reset_index()
 
 	if is_train:
@@ -89,7 +81,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 		bar_0s.set(xlabel = 'Hour', ylabel = 'Proportion of Zero Values', title = 'Proportion of Zero Values by Hour')
 		fig = bar_0s.get_figure()
 		plt.savefig(save_loc + 'dataset_bar_0s.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-		plt.clf()
+		plt.close()
 		files_created.append('dataset_bar_0s.png')
 	else:
 		fig, axes = plt.subplots(figsize=(12,12))
@@ -100,7 +92,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 		line_0s.set(xlabel = 'Hour', ylabel = 'Proportion of Zero Values', title = 'Proportion of Zero Values by Hour')
 
 		plt.savefig(save_loc + 'dataset_bar_0s.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-		plt.clf()
+		plt.close()
 		files_created.append('dataset_bar_0s.png')
 		print('Test data for dataset_bar_0s.png has no 0 data, so a line was super imposed on top to show that the proportions were 0.')
 
@@ -110,7 +102,7 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	# only looking at non-imputed data
 	plot_df = plot_df.loc[~plot_df['imputed'], :]
 
-	#print(plot_df.head(5))
+	# Line Graph of Variables - Figure 11
 	vis_columns = params['viz_columns']
 	vis_rename = params['viz_rename']
 	vis_dict = dict(zip(vis_columns, vis_rename))
@@ -133,46 +125,22 @@ def visualize_results(cwd, opt_results, is_train, **params):
 
 	plt.tight_layout()
 	plt.savefig(save_loc + 'data_values_pre_imputation.png')
-	plt.clf()
+	plt.close()
 	files_created.append('data_values_pre_imputation.png')
 
+	# Regression Plot - Figure 12
 	rel_fig = sns.regplot(data = plot_df, x = 'Actual Sup Flow SP' , y = 'Actual Supply Flow')
 	rel_fig.set(xlabel = 'Airflow SP', ylabel = 'Actual Airflow', title = 'Residuals of Regression on Actual Airflow vs Setpoint')
 	fig = rel_fig.get_figure()
 	plt.savefig(save_loc + 'data_airflow_reg.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-	plt.clf()
+	plt.close()
 	files_created.append('data_airflow_reg.png')
 
 	### VISUALIZATION of OPTIMIZATION RESULTS ###
 
 	opt_results.loc[:, 'hour'] = opt_results.loc[:, 'hour'].transform(visualize_hour)
 
-
-	# CURRENTLY UNUSED
-	# unique_air_vals = params['optimize_options']['Actual Sup Flow SP']
-	# num_groups = len(unique_air_vals)
-
-	# for measurement in ['median', 'mean', 'min', 'max']:
-	# 	fig, axes = plt.subplots(nrows= (num_groups + 1) // 2, ncols=2, dpi=300, figsize=(18,18))
-	# 	row = 0
-	# 	col = 0
-	# 	for i in range(num_groups):
-	# 		val = unique_air_vals[i]
-	# 		subset = opt_results.loc[opt_results['air_set'] == val, :]
-	# 		sns.violinplot(data = subset, x = measurement, y = 'occupancy', ax = axes[row, col])
-	# 		axes[row, col].set(title = 'Violin Plot of {0} Differences at Air Setpoint = {1}'.format(measurement.title(), val))
-
-	# 		col = col + 1
-	# 		if col == 2:
-	# 			row += 1
-	# 			col = 0
-
-	# 	fig.suptitle('Violin Plots of Differences')
-	# 	plt.tight_layout()
-	# 	plt.savefig((save_loc + 'opt_results_violin_{}.png').format(measurement), bbox_inches='tight')
-	# 	plt.clf()
-	# 	files_created.append('opt_results_violin_{}.png'.format(measurement))
-
+	# Heat Map - Figure 6
 	heat_df = pd.pivot_table(opt_results, values='max', index=['hour'],
                     columns=['air_set'], aggfunc=max)
 
@@ -180,23 +148,26 @@ def visualize_results(cwd, opt_results, is_train, **params):
 	heat_fig.set(xlabel = 'Air Setpoint Reduction', ylabel = 'Hour', title = 'Maximum Reduction of Cost by Air Setpoint Reduction and Hour')
 	fig = heat_fig.get_figure()
 	plt.savefig(save_loc + 'opt_results_heat_max.png', bbox_inches='tight', s = 20, dpi = 300, figsize = (12,12))
-	plt.clf()
+	plt.close()
 	files_created.append('opt_results_heat_max.png')
 
+	# Bar Charts - Figures 9 and 10
 	plot_df = opt_results.loc[(opt_results['temp_set'] == 0), ['hour', 'median', 'air_set', 'occupancy']]
 	order = ['high', 'low', 'unoccupied']
 	bar_fig = sns.barplot(data = plot_df, x = 'hour', y = 'median', hue = 'occupancy', hue_order = order)
 	bar_fig.set(xlabel = 'Hour', ylabel = 'Median Difference', title = 'Median Difference by Hour & Occupancy')
 	fig = bar_fig.get_figure()
-	fig.savefig(save_loc + 'opt_results_bar_occ.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
-	plt.clf()
+	fig.savefig(save_loc + 'opt_results_bar_occ.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewidth = 30)
+	plt.close()
+	files_created.append('opt_results_bar_occ.png')
 
 	bar_fig = sns.barplot(data = plot_df, x = 'air_set', y = 'median', hue = 'occupancy', hue_order = order)
 	bar_fig.set(xlabel = 'Air Setpoint', ylabel = 'Median Difference', title = 'Median Difference by Air Setpoint & Occupancy')
 	fig = bar_fig.get_figure()
 	plt.legend(loc='upper left')
 	fig.savefig(save_loc + 'opt_results_bar_occ_2.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
-	plt.clf()
+	plt.close()
+	files_created.append('opt_results_bar_occ_2.png')
 
 	## VISUALIZATION OF PROPORTIONS LIMITED ##
 
@@ -204,12 +175,13 @@ def visualize_results(cwd, opt_results, is_train, **params):
 		direc = params['final_output']
 	total_results = pd.read_csv(cwd + direc + 'total_' + params['optimize_results'])
 
+	# Line Graph Proportions - Figure 7
 	total_results.loc[:, 'hour'] = total_results.loc[:, 'hour'].transform(visualize_hour)
 	line_fig = sns.lineplot(data = total_results, x = 'hour', y = 'was_limited')
 	line_fig.set(xlabel = 'Hour', ylabel = 'Proportion Limited', title = 'Proportion Limited by Occupancy Limits by Hour')
 	fig = line_fig.get_figure()
 	plt.savefig(save_loc + 'opt_results_limitations_hour.png', bbox_inches='tight', dpi = 300, figsize = (12, 12), linewdith = 30)
-	plt.clf()
+	plt.close()
 	files_created.append('opt_results_limitations_hour.png')
 
 	if is_train:

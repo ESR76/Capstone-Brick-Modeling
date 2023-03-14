@@ -60,6 +60,7 @@ def get_data(cwd, **params):
 	if os.path.isdir(cwd + params['temp_output']):
 		files = os.listdir(cwd + params['temp_output'])
 		if params['out_name'] in files:
+			print('---ALERT---')
 			print('All data already downloaded and ready for features - will not redevelop for time saving.')
 			print('To redownload, please run "python3 run.py clean" and then call data again.')
 			return pd.read_csv(cwd + params['temp_output'] + params['out_name'])

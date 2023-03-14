@@ -77,7 +77,7 @@ def clean_prev(cwd):
     for file in files_to_remove:
         os.remove(file)
 
-    print('finished cleaning')
+    print('---CLEAN COMPLETE---')
     return
 
 # function for running test case
@@ -99,9 +99,8 @@ def test(cwd):
     output_optimize = optimize_model(cwd, test_mdl, False, **test_cfg)
     # visualize
     visualize_text = visualize_results(cwd, output_optimize, False, **test_cfg)
-    # STILL FILLING IN
 
-    print('finished with test')
+    print('---TEST COMPLETE---')
     return
 
 # function for running current modeling steps
@@ -185,7 +184,7 @@ def visualize(cwd, ds):
         visualize_cfg = json.load(fh)
 
     if ds.empty:
-        print('optimize was not in call to run.py file - will pull data from data/out assuming optimize & rest of the data pipeline has been run before. Will raise error if features file never generated.')
+        print('optimize was not in call to run.py file - will pull data from data/out assuming optimize & rest of the data pipeline has been run before. Will raise error if optimize files never generated.')
         ds = pd.read_csv(cwd + visualize_cfg['final_output'] + visualize_cfg['optimize_results'])
 
     return visualize_results(cwd, ds, True, **visualize_cfg)
@@ -210,7 +209,7 @@ def main(targets):
         test(cwd)
         order.append('test')
 
-    # runs data, features, and model in order - if trying to run without the other, it will print a statement and assume others have been run before
+    # runs in order of pipeline - if trying to run without the other, it will print a statement and assume others have been run before
     early_dataset = pd.DataFrame()
     if 'data' in targets:
         early_dataset = data(cwd)
@@ -222,7 +221,7 @@ def main(targets):
         finished_dataset = features_2(cwd, cleaned_dataset)
         order.append('features')
     
-    # FOR TESTING - DOES NOT CONTRIBUTE TO PIPELINE
+    # FOR INTERNAL TESTING ONLY - DOES NOT CONTRIBUTE TO PIPELINE
     if 'lin' in targets:
         lin_model(cwd, finished_dataset)
         order.append('linear model')
@@ -240,8 +239,6 @@ def main(targets):
     if 'visualize' in targets:
         print(visualize(cwd, opt_results))
         order.append('visualize')
-
-
 
     return order
 
@@ -264,6 +261,7 @@ if __name__ == '__main__':
         targets.remove('all')
 
     run_order = main(targets)
+    print('\n---END OF CALL---')
     print('Function call finished running. Order of calls performed was: ' + ", ".join(run_order) + ".")
 
 

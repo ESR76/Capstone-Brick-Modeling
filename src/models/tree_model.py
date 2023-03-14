@@ -17,6 +17,7 @@ def generate_model(cwd, data, is_train, **params):
 			files = os.listdir(cwd + params['final_output'])
 
 			if final_name in files:
+				print('---ALERT---')
 				print('Modeled data already found - will stop after model retrained to save time.')
 				print('If you would like to regenerate the associated files, please run "python3 run.py clean" in the terminal before calling model again.')
 				stop_early = True
